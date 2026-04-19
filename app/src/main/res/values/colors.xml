@@ -8,4 +8,5 @@
     <color name="colorOnSurface">#EEEEEE</color>
     <color name="colorGranted">#4CAF50</color>
     <color name="colorNotGranted">#F44336</color>
+    <color name="colorAccent">#7B61FF</color>
 </resources>

@@ -2,13 +2,14 @@
 <resources>
     <string name="app_name">Doom Scroll Clock</string>
     <string name="accessibility_service_label">Doom Scroll Clock</string>
-    <string name="accessibility_service_description">Tracks time spent scrolling in social media apps and shows a minimal timer overlay. No content is read or stored.</string>
-    <string name="permission_overlay_title">Display over other apps</string>
-    <string name="permission_overlay_desc">Required to show the scroll timer on top of other apps.</string>
+    <string name="accessibility_service_description">Tracks time spent scrolling in social media apps and shows a timer notification. No content is read or stored.</string>
+    <string name="permission_notification_title">Notification permission</string>
+    <string name="permission_notification_desc">Required to show the live scroll timer in your notification bar.</string>
     <string name="permission_accessibility_title">Accessibility service</string>
     <string name="permission_accessibility_desc">Required to detect scrolling. No content is read.</string>
     <string name="status_all_set">All set. Timer is active.</string>
-    <string name="status_missing_permissions">Grant both permissions to activate the timer.</string>
+    <string name="status_missing_permissions">Grant permissions above to activate the timer.</string>
     <string name="btn_grant">Grant</string>
+    <string name="btn_stats">Stats →</string>
     <string name="granted">Granted</string>
 </resources>

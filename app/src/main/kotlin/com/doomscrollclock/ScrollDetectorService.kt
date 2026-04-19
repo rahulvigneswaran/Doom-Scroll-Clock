@@ -35,7 +35,6 @@ class ScrollDetectorService : AccessibilityService() {
             "youtube.com",
             "snapchat.com"
         )
-        // Try multiple IDs — Chrome's URL bar resource name varies across versions
         private val CHROME_URL_BAR_IDS = listOf(
             "url_bar",
             "location_bar_edit_text",
@@ -58,9 +57,9 @@ class ScrollDetectorService : AccessibilityService() {
             Log.e(TAG, "TimerManager init failed", e)
         }
         try {
-            OverlayManager.init(applicationContext)
+            NotificationHelper.init(applicationContext)
         } catch (e: Exception) {
-            Log.e(TAG, "OverlayManager init failed", e)
+            Log.e(TAG, "NotificationHelper init failed", e)
         }
         try {
             alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
@@ -69,8 +68,6 @@ class ScrollDetectorService : AccessibilityService() {
             Log.e(TAG, "Midnight alarm setup failed", e)
         }
         try {
-            // API 33+ (TIRAMISU) requires RECEIVER_NOT_EXPORTED for dynamically registered
-            // receivers; enforcement depends on targetSdk/runtime behavior.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(
                     midnightReceiver,
@@ -92,7 +89,6 @@ class ScrollDetectorService : AccessibilityService() {
             when (event.eventType) {
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
                     if (pkg in BROWSER_PACKAGES) {
-                        // Delay the read — URL bar text isn't populated at the moment this event fires
                         handler.removeCallbacks(urlRefreshRunnable)
                         pendingUrlRefreshPkg = pkg
                         handler.postDelayed(urlRefreshRunnable, URL_REFRESH_DELAY_MS)
@@ -100,16 +96,17 @@ class ScrollDetectorService : AccessibilityService() {
                 }
                 AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
                     if (pkg in TARGET_PACKAGES) {
-                        OverlayManager.show()
-                        OverlayManager.scheduleHide()
+                        TimerManager.incrementScrollEvent()
+                        NotificationHelper.show()
+                        NotificationHelper.scheduleHide()
                     } else if (pkg in BROWSER_PACKAGES) {
-                        // If cache is empty (first scroll before state-change delay fires), try now
                         if (cachedBrowserUrl.isEmpty()) refreshBrowserUrl(pkg)
                         if (BROWSER_TARGET_DOMAINS.any {
                                 cachedBrowserUrl.contains(it, ignoreCase = true)
                             }) {
-                            OverlayManager.show()
-                            OverlayManager.scheduleHide()
+                            TimerManager.incrementScrollEvent()
+                            NotificationHelper.show()
+                            NotificationHelper.scheduleHide()
                         }
                     }
                 }
@@ -129,7 +126,7 @@ class ScrollDetectorService : AccessibilityService() {
             // Not registered or already unregistered
         }
         alarmManager?.cancel(buildMidnightPendingIntent())
-        OverlayManager.cleanup()
+        NotificationHelper.cleanup()
         TimerManager.stopTicking()
         return super.onUnbind(intent)
     }
