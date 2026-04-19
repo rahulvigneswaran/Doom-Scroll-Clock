@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple hourglass/clock shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 C46,30 38,36 38,44 C38,52 46,54 54,54 C62,54 70,56 70,64 C70,72 62,78 54,78 C46,78 38,72 38,64 M38,30 L70,30 M38,78 L70,78" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M38,30 L70,30 M38,78 L70,78 M38,30 L54,54 L70,30 M38,78 L54,54 L70,78" />
+</vector>
