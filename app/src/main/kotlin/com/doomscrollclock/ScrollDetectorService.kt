@@ -57,6 +57,11 @@ class ScrollDetectorService : AccessibilityService() {
             Log.e(TAG, "TimerManager init failed", e)
         }
         try {
+            OverlayManager.init(applicationContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "OverlayManager init failed", e)
+        }
+        try {
             NotificationHelper.init(applicationContext)
         } catch (e: Exception) {
             Log.e(TAG, "NotificationHelper init failed", e)
@@ -97,16 +102,16 @@ class ScrollDetectorService : AccessibilityService() {
                 AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
                     if (pkg in TARGET_PACKAGES) {
                         TimerManager.incrementScrollEvent()
-                        NotificationHelper.show()
-                        NotificationHelper.scheduleHide()
+                        OverlayManager.show()
+                        OverlayManager.scheduleHide()
                     } else if (pkg in BROWSER_PACKAGES) {
                         if (cachedBrowserUrl.isEmpty()) refreshBrowserUrl(pkg)
                         if (BROWSER_TARGET_DOMAINS.any {
                                 cachedBrowserUrl.contains(it, ignoreCase = true)
                             }) {
                             TimerManager.incrementScrollEvent()
-                            NotificationHelper.show()
-                            NotificationHelper.scheduleHide()
+                            OverlayManager.show()
+                            OverlayManager.scheduleHide()
                         }
                     }
                 }
@@ -126,6 +131,7 @@ class ScrollDetectorService : AccessibilityService() {
             // Not registered or already unregistered
         }
         alarmManager?.cancel(buildMidnightPendingIntent())
+        OverlayManager.cleanup()
         NotificationHelper.cleanup()
         TimerManager.stopTicking()
         return super.onUnbind(intent)

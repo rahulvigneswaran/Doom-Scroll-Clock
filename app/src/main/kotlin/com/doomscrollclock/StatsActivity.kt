@@ -57,7 +57,7 @@ class StatsActivity : AppCompatActivity() {
         if (distanceFact != null) {
             binding.distanceFactEmoji.text = distanceFact.emoji
             binding.distanceFactText.text = distanceFact.text
-            val metres = scrollEvents * 0.5
+            val metres = scrollEvents * 0.02
             binding.distanceFactSub.text = if (metres < 1000) {
                 "~${metres.toInt()}m of content"
             } else {

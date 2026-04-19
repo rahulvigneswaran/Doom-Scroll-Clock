@@ -3,6 +3,7 @@ package com.doomscrollclock
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -26,15 +27,24 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnOverlay.setOnClickListener {
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+            )
+        }
+
+        binding.btnAccessibility.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             binding.cardNotification.visibility = View.VISIBLE
             binding.btnNotification.setOnClickListener {
                 notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
-        }
-
-        binding.btnAccessibility.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
         binding.btnStats.setOnClickListener {
@@ -43,14 +53,14 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("doom_scroll_prefs", MODE_PRIVATE)
         binding.btnModeTime.setOnClickListener {
-            prefs.edit().putString("notif_display_mode", "time").apply()
+            prefs.edit().putString("pill_display_mode", "time").apply()
             updateModeButtons("time")
         }
         binding.btnModeDistance.setOnClickListener {
-            prefs.edit().putString("notif_display_mode", "distance").apply()
+            prefs.edit().putString("pill_display_mode", "distance").apply()
             updateModeButtons("distance")
         }
-        updateModeButtons(prefs.getString("notif_display_mode", "time") ?: "time")
+        updateModeButtons(prefs.getString("pill_display_mode", "time") ?: "time")
     }
 
     override fun onResume() {
@@ -59,16 +69,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePermissionUI() {
-        val notifGranted = isNotifPermissionGranted()
+        val overlayGranted = Settings.canDrawOverlays(this)
         val accessibilityGranted = isAccessibilityServiceEnabled()
-        val allGranted = notifGranted && accessibilityGranted
+        val allGranted = overlayGranted && accessibilityGranted
+
+        updateDot(binding.dotOverlay, overlayGranted)
+        updateDot(binding.dotAccessibility, accessibilityGranted)
+        binding.btnOverlay.isEnabled = !overlayGranted
+        binding.btnAccessibility.isEnabled = !accessibilityGranted
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val notifGranted = ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
             updateDot(binding.dotNotification, notifGranted)
             binding.btnNotification.isEnabled = !notifGranted
         }
-        updateDot(binding.dotAccessibility, accessibilityGranted)
-        binding.btnAccessibility.isEnabled = !accessibilityGranted
 
         binding.statusText.text = if (allGranted) {
             getString(R.string.status_all_set)
@@ -91,13 +107,6 @@ class MainActivity : AppCompatActivity() {
         val defaultColor = getColor(R.color.colorOnSurface)
         binding.btnModeTime.setTextColor(if (mode == "time") accentColor else defaultColor)
         binding.btnModeDistance.setTextColor(if (mode == "distance") accentColor else defaultColor)
-    }
-
-    private fun isNotifPermissionGranted(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
-        return ContextCompat.checkSelfPermission(
-            this, Manifest.permission.POST_NOTIFICATIONS
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {

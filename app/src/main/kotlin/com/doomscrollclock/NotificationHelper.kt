@@ -1,88 +1,47 @@
 package com.doomscrollclock
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 
 object NotificationHelper {
 
-    private const val CHANNEL_ID = "doom_scroll_active"
-    const val NOTIF_ID = 1
-    private const val PREFS_NAME = "doom_scroll_prefs"
-    private const val KEY_DISPLAY_MODE = "notif_display_mode"
+    private const val CHANNEL_ID = "doom_scroll_summary"
+    private const val NOTIF_ID = 1
 
     private lateinit var appContext: Context
     private lateinit var notifManager: NotificationManager
-    private val handler = Handler(Looper.getMainLooper())
     private var initialized = false
-    private var isActive = false
-
-    private val stopRunnable = Runnable {
-        TimerManager.stopTicking()
-        isActive = false
-        if (::notifManager.isInitialized) {
-            notifManager.notify(NOTIF_ID, buildNotification(ongoing = false))
-        }
-    }
 
     fun init(context: Context) {
         if (initialized) return
         appContext = context.applicationContext
         notifManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notifManager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Scroll Timer", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Shows your live scroll time"
-                setShowBadge(false)
+            NotificationChannel(CHANNEL_ID, "Scroll Summary", NotificationManager.IMPORTANCE_LOW).apply {
+                description = "Fun facts about your daily scrolling"
+                setShowBadge(true)
             }
         )
         initialized = true
     }
 
-    fun show() {
+    fun showSummary() {
         if (!initialized) return
-        if (!isActive) {
-            TimerManager.startTicking()
-            isActive = true
-        }
-        notifManager.notify(NOTIF_ID, buildNotification(ongoing = true))
-    }
+        val totalSecs = TimerManager.getTotalSeconds()
+        if (totalSecs < 9) return
 
-    fun scheduleHide() {
-        handler.removeCallbacks(stopRunnable)
-        handler.postDelayed(stopRunnable, 1500)
-    }
+        val level = FunFacts.getDailyLevel(totalSecs)
+        val timeFact = FunFacts.getTimeFact(totalSecs)
 
-    fun updateDisplay() {
-        if (!initialized) return
-        notifManager.notify(NOTIF_ID, buildNotification(ongoing = isActive))
-    }
-
-    fun cleanup() {
-        handler.removeCallbacksAndMessages(null)
-        TimerManager.stopTicking()
-        if (::notifManager.isInitialized) notifManager.cancel(NOTIF_ID)
-        isActive = false
-        initialized = false
-    }
-
-    fun buildNotification(ongoing: Boolean = true): Notification {
-        val mode = if (::appContext.isInitialized) {
-            appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_DISPLAY_MODE, "time") ?: "time"
-        } else "time"
-
-        val contentText = if (mode == "distance") {
-            val metres = TimerManager.getScrollEvents() * 0.5
-            if (metres < 1000) "📏 ~${metres.toInt()}m scrolled today"
-            else "📏 ~${"%.1f".format(metres / 1000)}km scrolled today"
+        val title = "${level.emoji} ${level.title}"
+        val body = if (timeFact != null) {
+            "${timeFact.emoji} ${TimerManager.getFormattedTime()} today — like ${timeFact.text}"
         } else {
-            "⏱ ${TimerManager.getFormattedTime()} today"
+            "${TimerManager.getFormattedTime()} of doom-scrolling today"
         }
 
         val tapIntent = Intent(appContext, StatsActivity::class.java)
@@ -91,13 +50,20 @@ object NotificationHelper {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        return NotificationCompat.Builder(appContext, CHANNEL_ID)
+        val notif = androidx.core.app.NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Doom Scroll Clock")
-            .setContentText(contentText)
-            .setOngoing(ongoing)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(pi)
-            .setShowWhen(false)
+            .setAutoCancel(true)
             .build()
+
+        notifManager.notify(NOTIF_ID, notif)
+    }
+
+    fun cleanup() {
+        if (::notifManager.isInitialized) notifManager.cancel(NOTIF_ID)
+        initialized = false
     }
 }

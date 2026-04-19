@@ -49,17 +49,18 @@ object FunFacts {
         TimeFact("🌍", "One full rotation of planet Earth", 86400),
     )
 
+    // Calibrated at 2cm per TYPE_VIEW_SCROLLED event (≈ 6 events per physical swipe ≈ 12cm/swipe)
     val distanceFacts = listOf(
-        DistanceFact("🧍", "Taller than an NBA player", 4),
-        DistanceFact("🚌", "A London double-decker bus", 22),
-        DistanceFact("🗽", "The Statue of Liberty (pedestal to torch)", 186),
-        DistanceFact("🗼", "Past the Eiffel Tower", 660),
-        DistanceFact("🏙️", "One World Trade Center", 1082),
-        DistanceFact("🌆", "Over the Burj Khalifa — world's tallest building", 1656),
-        DistanceFact("🏔️", "The summit of Mount Everest", 17698),
-        DistanceFact("🏃", "A full marathon, one post at a time", 84400),
-        DistanceFact("🚀", "Into space (the Kármán line)", 200000),
-        DistanceFact("🛸", "To the altitude of the ISS", 816000),
+        DistanceFact("🧍", "Taller than an NBA player", 110),
+        DistanceFact("🚌", "A London double-decker bus", 220),
+        DistanceFact("🗽", "The Statue of Liberty (pedestal to torch)", 4650),
+        DistanceFact("🗼", "Past the Eiffel Tower", 16500),
+        DistanceFact("🏙️", "One World Trade Center", 27100),
+        DistanceFact("🌆", "Over the Burj Khalifa — world's tallest building", 41400),
+        DistanceFact("🏔️", "The summit of Mount Everest", 442500),
+        DistanceFact("🏃", "A full marathon, one post at a time", 2110000),
+        DistanceFact("🚀", "Into space (the Kármán line)", 5000000),
+        DistanceFact("🛸", "To the altitude of the ISS", 20000000),
     )
 
     fun getDailyLevel(seconds: Long): Level =
@@ -75,7 +76,7 @@ object FunFacts {
         distanceFacts.lastOrNull { scrollEvents >= it.minEvents }
 
     fun formatDistance(scrollEvents: Long): String {
-        val metres = scrollEvents * 0.5
+        val metres = scrollEvents * 0.02
         return if (metres < 1000) "~${metres.toInt()}m" else "~${"%.1f".format(metres / 1000)}km"
     }
 }

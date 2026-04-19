@@ -28,7 +28,7 @@ object TimerManager {
     private val tickRunnable = object : Runnable {
         override fun run() {
             totalSeconds++
-            NotificationHelper.updateDisplay()
+            OverlayManager.updateDisplay(totalSeconds)
             prefs.edit().putLong(KEY_TOTAL_SECONDS, totalSeconds).apply()
             handler.postDelayed(this, 1000)
         }
