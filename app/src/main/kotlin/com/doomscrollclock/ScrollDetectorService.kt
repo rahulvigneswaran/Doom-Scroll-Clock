@@ -63,14 +63,6 @@ class ScrollDetectorService : AccessibilityService() {
             Log.e(TAG, "OverlayManager init failed", e)
         }
         try {
-            serviceInfo?.let { info ->
-                info.packageNames = (TARGET_PACKAGES + BROWSER_PACKAGES).toTypedArray()
-                serviceInfo = info
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not restrict serviceInfo packageNames", e)
-        }
-        try {
             alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
             scheduleMidnightAlarm()
         } catch (e: Exception) {

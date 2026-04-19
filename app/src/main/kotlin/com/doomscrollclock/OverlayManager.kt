@@ -2,13 +2,14 @@ package com.doomscrollclock
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import com.doomscrollclock.databinding.OverlayTimerBinding
+import android.widget.TextView
 
 object OverlayManager {
 
@@ -16,11 +17,8 @@ object OverlayManager {
 
     private lateinit var windowManager: WindowManager
     private lateinit var appContext: Context
+    private var timerTextView: TextView? = null
     private var overlayView: View? = null
-    private var binding: OverlayTimerBinding? = null
-
-    // All calls to show/hide/scheduleHide originate from onAccessibilityEvent or
-    // onUnbind, both of which run on the main thread — no handler.post needed.
     private val handler = Handler(Looper.getMainLooper())
     private var isShowing = false
     private var initialized = false
@@ -34,8 +32,8 @@ object OverlayManager {
         if (initialized) return
         appContext = context.applicationContext
         windowManager = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        binding = OverlayTimerBinding.inflate(LayoutInflater.from(appContext))
-        overlayView = binding!!.root
+        // Build programmatically — avoids Material theme resolution failures in service context
+        overlayView = buildOverlayView()
         initialized = true
     }
 
@@ -46,7 +44,7 @@ object OverlayManager {
             isShowing = true
             TimerManager.startTicking()
         } catch (e: Exception) {
-            // Overlay permission revoked at runtime
+            // SYSTEM_ALERT_WINDOW not granted or revoked at runtime
         }
     }
 
@@ -56,7 +54,7 @@ object OverlayManager {
     }
 
     fun updateDisplay(@Suppress("UNUSED_PARAMETER") totalSeconds: Long) {
-        binding?.timerText?.text = TimerManager.getFormattedTime()
+        timerTextView?.text = TimerManager.getFormattedTime()
     }
 
     fun cleanup() {
@@ -64,7 +62,7 @@ object OverlayManager {
         TimerManager.stopTicking()
         if (isShowing) removeOverlayView()
         initialized = false
-        binding = null
+        timerTextView = null
         overlayView = null
     }
 
@@ -75,6 +73,28 @@ object OverlayManager {
             // Already removed
         }
         isShowing = false
+    }
+
+    private fun buildOverlayView(): TextView {
+        val density = appContext.resources.displayMetrics.density
+        val hPad = (14 * density).toInt()
+        val vPad = (5 * density).toInt()
+        val cornerRadius = 24 * density
+
+        val background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            this.cornerRadius = cornerRadius
+            setColor(0xCC000000.toInt())
+        }
+
+        return TextView(appContext).apply {
+            setPadding(hPad, vPad, hPad, vPad)
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 13f
+            typeface = Typeface.MONOSPACE
+            text = "0s"
+            setBackground(background)
+        }.also { timerTextView = it }
     }
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
