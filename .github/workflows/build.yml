@@ -2,7 +2,8 @@ name: Build Debug APK
 
 on:
   push:
-    branches: ["**"]
+    branches: ["main"]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -27,7 +28,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'gradle.properties') }}
           restore-keys: gradle-
 
       - name: Make gradlew executable

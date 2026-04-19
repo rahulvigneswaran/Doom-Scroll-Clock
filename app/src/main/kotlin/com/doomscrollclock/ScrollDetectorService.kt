@@ -6,6 +6,9 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import java.time.LocalDate
 import java.time.ZoneId
@@ -13,6 +16,9 @@ import java.time.ZoneId
 class ScrollDetectorService : AccessibilityService() {
 
     companion object {
+        private const val TAG = "DoomScrollClock"
+        private const val URL_REFRESH_DELAY_MS = 500L
+
         private val TARGET_PACKAGES = setOf(
             "com.instagram.android",
             "com.snapchat.android",
@@ -29,27 +35,50 @@ class ScrollDetectorService : AccessibilityService() {
             "youtube.com",
             "snapchat.com"
         )
+        // Try multiple IDs — Chrome's URL bar resource name varies across versions
+        private val CHROME_URL_BAR_IDS = listOf(
+            "url_bar",
+            "location_bar_edit_text",
+            "search_box_text"
+        )
     }
 
     private var cachedBrowserUrl = ""
     private val midnightReceiver = MidnightResetReceiver()
     private var alarmManager: AlarmManager? = null
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var pendingUrlRefreshPkg = ""
+    private val urlRefreshRunnable = Runnable { refreshBrowserUrl(pendingUrlRefreshPkg) }
+
     override fun onServiceConnected() {
         try {
             TimerManager.init(applicationContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "TimerManager init failed", e)
+        }
+        try {
             OverlayManager.init(applicationContext)
-
-            // Restrict OS-level event delivery to target packages only
+        } catch (e: Exception) {
+            Log.e(TAG, "OverlayManager init failed", e)
+        }
+        try {
             serviceInfo?.let { info ->
                 info.packageNames = (TARGET_PACKAGES + BROWSER_PACKAGES).toTypedArray()
                 serviceInfo = info
             }
-
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not restrict serviceInfo packageNames", e)
+        }
+        try {
             alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
             scheduleMidnightAlarm()
-
-            // Android 14 (API 34) requires RECEIVER_NOT_EXPORTED even for system broadcasts
+        } catch (e: Exception) {
+            Log.e(TAG, "Midnight alarm setup failed", e)
+        }
+        try {
+            // API 33+ (TIRAMISU) requires RECEIVER_NOT_EXPORTED for dynamically registered
+            // receivers; enforcement depends on targetSdk/runtime behavior.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(
                     midnightReceiver,
@@ -61,43 +90,47 @@ class ScrollDetectorService : AccessibilityService() {
                 registerReceiver(midnightReceiver, IntentFilter(Intent.ACTION_DATE_CHANGED))
             }
         } catch (e: Exception) {
-            // Prevent crash-loop from killing the service
+            Log.e(TAG, "Failed to register midnight receiver", e)
         }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        val pkg = event.packageName?.toString() ?: return
         try {
-            val pkg = event.packageName?.toString() ?: return
-
             when (event.eventType) {
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
                     if (pkg in BROWSER_PACKAGES) {
-                        val root = rootInActiveWindow ?: return
-                        val urlNodes = root.findAccessibilityNodeInfosByViewId("$pkg:id/url_bar")
-                        cachedBrowserUrl = urlNodes.firstOrNull()?.text?.toString()
-                            ?: cachedBrowserUrl
+                        // Delay the read — URL bar text isn't populated at the moment this event fires
+                        handler.removeCallbacks(urlRefreshRunnable)
+                        pendingUrlRefreshPkg = pkg
+                        handler.postDelayed(urlRefreshRunnable, URL_REFRESH_DELAY_MS)
                     }
                 }
                 AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
-                    val isTargetApp = pkg in TARGET_PACKAGES
-                    val isTargetBrowserPage = pkg in BROWSER_PACKAGES &&
-                            BROWSER_TARGET_DOMAINS.any {
-                                cachedBrowserUrl.contains(it, ignoreCase = true)
-                            }
-                    if (isTargetApp || isTargetBrowserPage) {
+                    if (pkg in TARGET_PACKAGES) {
                         OverlayManager.show()
                         OverlayManager.scheduleHide()
+                    } else if (pkg in BROWSER_PACKAGES) {
+                        // If cache is empty (first scroll before state-change delay fires), try now
+                        if (cachedBrowserUrl.isEmpty()) refreshBrowserUrl(pkg)
+                        if (BROWSER_TARGET_DOMAINS.any {
+                                cachedBrowserUrl.contains(it, ignoreCase = true)
+                            }) {
+                            OverlayManager.show()
+                            OverlayManager.scheduleHide()
+                        }
                     }
                 }
             }
         } catch (e: Exception) {
-            // Swallow to prevent crash-looping the service
+            Log.w(TAG, "Error handling accessibility event from $pkg", e)
         }
     }
 
     override fun onInterrupt() = Unit
 
     override fun onUnbind(intent: Intent): Boolean {
+        handler.removeCallbacksAndMessages(null)
         try {
             unregisterReceiver(midnightReceiver)
         } catch (e: Exception) {
@@ -107,6 +140,23 @@ class ScrollDetectorService : AccessibilityService() {
         OverlayManager.cleanup()
         TimerManager.stopTicking()
         return super.onUnbind(intent)
+    }
+
+    private fun refreshBrowserUrl(pkg: String) {
+        if (pkg.isEmpty()) return
+        try {
+            val root = rootInActiveWindow ?: return
+            for (id in CHROME_URL_BAR_IDS) {
+                val text = root.findAccessibilityNodeInfosByViewId("$pkg:id/$id")
+                    .firstOrNull()?.text?.toString()
+                if (!text.isNullOrEmpty()) {
+                    cachedBrowserUrl = text
+                    return
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not read browser URL from $pkg", e)
+        }
     }
 
     private fun scheduleMidnightAlarm() {
@@ -120,14 +170,12 @@ class ScrollDetectorService : AccessibilityService() {
         }
     }
 
-    private fun buildMidnightPendingIntent(): PendingIntent {
-        return PendingIntent.getBroadcast(
-            this,
-            0,
+    private fun buildMidnightPendingIntent(): PendingIntent =
+        PendingIntent.getBroadcast(
+            this, 0,
             Intent(this, MidnightResetReceiver::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-    }
 
     private fun nextMidnightMillis(): Long =
         LocalDate.now().plusDays(1)
