@@ -1,7 +1,13 @@
 package com.doomscrollclock
 
+import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.BlurMaskFilter
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
@@ -9,6 +15,7 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.TextView
 
 object OverlayManager {
@@ -20,7 +27,7 @@ object OverlayManager {
     private lateinit var windowManager: WindowManager
     private lateinit var appContext: Context
     private var timerTextView: TextView? = null
-    private var overlayView: View? = null
+    private var overlayView: GlowPillView? = null
     private val handler = Handler(Looper.getMainLooper())
     private var isShowing = false
     private var initialized = false
@@ -29,6 +36,68 @@ object OverlayManager {
         TimerManager.stopTicking()
         removeOverlayView()
         NotificationHelper.showSummary()
+    }
+
+    private class GlowPillView(ctx: Context) : FrameLayout(ctx) {
+
+        private val density = ctx.resources.displayMetrics.density
+        private val cornerRadius = 24 * density
+        private val glowPad = (32 * density).toInt()
+
+        private var glowAlpha = 0.35f
+
+        private val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#8B5CF6")
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(28 * density, BlurMaskFilter.Blur.NORMAL)
+        }
+        private val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(10 * density, BlurMaskFilter.Blur.NORMAL)
+        }
+
+        private val animator = ValueAnimator.ofFloat(0.35f, 1.0f).apply {
+            duration = 1500
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            addUpdateListener { glowAlpha = it.animatedValue as Float; invalidate() }
+        }
+
+        init {
+            setLayerType(LAYER_TYPE_SOFTWARE, null)
+            setWillNotDraw(false)
+            setPadding(glowPad, glowPad, glowPad, glowPad)
+        }
+
+        fun startPulsing() {
+            if (!animator.isRunning) animator.start()
+        }
+
+        fun stopPulsing() {
+            animator.cancel()
+            glowAlpha = 0.35f
+            invalidate()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            val child = getChildAt(0) ?: return super.onDraw(canvas)
+            val l = child.left.toFloat()
+            val t = child.top.toFloat()
+            val r = child.right.toFloat()
+            val b = child.bottom.toFloat()
+            val expand = 2 * density
+            val outerRect = RectF(l - expand, t - expand, r + expand, b + expand)
+            val pillRect = RectF(l, t, r, b)
+
+            outerPaint.alpha = (glowAlpha * 0.65f * 255).toInt()
+            canvas.drawRoundRect(outerRect, cornerRadius, cornerRadius, outerPaint)
+
+            innerPaint.alpha = (glowAlpha * 0.55f * 255).toInt()
+            canvas.drawRoundRect(pillRect, cornerRadius, cornerRadius, innerPaint)
+
+            super.onDraw(canvas)
+        }
     }
 
     fun init(context: Context) {
@@ -45,6 +114,7 @@ object OverlayManager {
             windowManager.addView(overlayView, buildLayoutParams())
             isShowing = true
             TimerManager.startTicking()
+            overlayView?.startPulsing()
         } catch (e: Exception) {
             // SYSTEM_ALERT_WINDOW not granted or revoked at runtime
         }
@@ -73,12 +143,14 @@ object OverlayManager {
         handler.removeCallbacksAndMessages(null)
         TimerManager.stopTicking()
         if (isShowing) removeOverlayView()
+        overlayView?.stopPulsing()
         initialized = false
         timerTextView = null
         overlayView = null
     }
 
     private fun removeOverlayView() {
+        overlayView?.stopPulsing()
         try {
             windowManager.removeView(overlayView)
         } catch (e: IllegalArgumentException) {
@@ -87,7 +159,7 @@ object OverlayManager {
         isShowing = false
     }
 
-    private fun buildOverlayView(): TextView {
+    private fun buildOverlayView(): GlowPillView {
         val density = appContext.resources.displayMetrics.density
         val hPad = (14 * density).toInt()
         val vPad = (5 * density).toInt()
@@ -96,17 +168,22 @@ object OverlayManager {
         val background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             this.cornerRadius = cornerRadius
-            setColor(0xCC000000.toInt())
+            setColor(0xE6000000.toInt())
         }
 
-        return TextView(appContext).apply {
+        val tv = TextView(appContext).apply {
             setPadding(hPad, vPad, hPad, vPad)
             setTextColor(0xFFFFFFFF.toInt())
             textSize = 13f
             typeface = Typeface.MONOSPACE
             text = "0s"
             setBackground(background)
-        }.also { timerTextView = it }
+        }
+
+        return GlowPillView(appContext).also { wrapper ->
+            wrapper.addView(tv)
+            timerTextView = tv
+        }
     }
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
