@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#1A1A1A</color>
-    <color name="colorPrimaryVariant">#333333</color>
+    <color name="colorBackground">#F5FAFF</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorSurfaceVariant">#EBF3F9</color>
+    <color name="colorOnSurface">#1B3543</color>
+    <color name="colorOnSurfaceVariant">#5A7A8A</color>
+    <color name="colorPrimary">#306B3F</color>
+    <color name="colorPrimaryVariant">#235E34</color>
+    <color name="colorPrimaryContainer">#C8E6C9</color>
     <color name="colorOnPrimary">#FFFFFF</color>
-    <color name="colorBackground">#121212</color>
-    <color name="colorSurface">#1E1E1E</color>
-    <color name="colorOnSurface">#EEEEEE</color>
-    <color name="colorGranted">#4CAF50</color>
-    <color name="colorNotGranted">#F44336</color>
-    <color name="colorAccent">#7B61FF</color>
+    <color name="colorDivider">#DDE8EF</color>
+    <color name="colorNavBackground">#FFFFFF</color>
+    <color name="colorBarToday">#306B3F</color>
+    <color name="colorBarPast">#B0C9D6</color>
+    <color name="colorGranted">#306B3F</color>
+    <color name="colorNotGranted">#E53935</color>
+    <color name="colorAccent">#306B3F</color>
 </resources>

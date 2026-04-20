@@ -3,23 +3,24 @@ package com.doomscrollclock
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import com.doomscrollclock.databinding.ActivityStatsBinding
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import com.doomscrollclock.databinding.FragmentTimeBinding
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-class StatsActivity : AppCompatActivity() {
+class TimeFragment : Fragment() {
 
-    private lateinit var binding: ActivityStatsBinding
+    private var _binding: FragmentTimeBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityStatsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.btnBack.setOnClickListener { finish() }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentTimeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onResume() {
@@ -27,11 +28,13 @@ class StatsActivity : AppCompatActivity() {
         updateStats()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun updateStats() {
         val totalSecs = TimerManager.getTotalSeconds()
-        val scrollEvents = TimerManager.getScrollEvents()
-        val lifetimeSecs = TimerManager.getLifetimeSeconds()
-
         binding.heroTime.text = TimerManager.formatSeconds(totalSecs)
 
         val dailyLevel = FunFacts.getDailyLevel(totalSecs)
@@ -39,7 +42,7 @@ class StatsActivity : AppCompatActivity() {
         binding.dailyLevelTitle.text = dailyLevel.title
         binding.dailyLevelTagline.text = "\"${dailyLevel.tagline}\""
 
-        val lifetimeLevel = FunFacts.getLifetimeLevel(lifetimeSecs)
+        val lifetimeLevel = FunFacts.getLifetimeLevel(TimerManager.getLifetimeSeconds())
         binding.lifetimeLevelEmoji.text = lifetimeLevel.emoji
         binding.lifetimeLevelTitle.text = lifetimeLevel.title
         binding.lifetimeLevelTagline.text = "\"${lifetimeLevel.tagline}\""
@@ -53,21 +56,6 @@ class StatsActivity : AppCompatActivity() {
             binding.cardTimeFact.visibility = View.GONE
         }
 
-        val distanceFact = FunFacts.getDistanceFact(scrollEvents)
-        if (distanceFact != null) {
-            binding.distanceFactEmoji.text = distanceFact.emoji
-            binding.distanceFactText.text = distanceFact.text
-            val metres = scrollEvents * 0.02
-            binding.distanceFactSub.text = if (metres < 1000) {
-                "~${metres.toInt()}m of content"
-            } else {
-                "~${"%.1f".format(metres / 1000)}km of content"
-            }
-            binding.cardDistanceFact.visibility = View.VISIBLE
-        } else {
-            binding.cardDistanceFact.visibility = View.GONE
-        }
-
         populateHistory()
     }
 
@@ -77,7 +65,7 @@ class StatsActivity : AppCompatActivity() {
         val container = binding.historyContainer
         container.removeAllViews()
         val today = LocalDate.now().toString()
-        val inflater = LayoutInflater.from(this)
+        val inflater = LayoutInflater.from(requireContext())
 
         history.forEach { day ->
             val row = inflater.inflate(R.layout.item_history_row, container, false)
@@ -94,7 +82,8 @@ class StatsActivity : AppCompatActivity() {
             params.weight = frac
             bar.layoutParams = params
             bar.setBackgroundColor(
-                if (day.date == today) 0xFF7B61FF.toInt() else 0xFF555555.toInt()
+                if (day.date == today) ContextCompat.getColor(requireContext(), R.color.colorBarToday)
+                else ContextCompat.getColor(requireContext(), R.color.colorBarPast)
             )
 
             timeView.text = if (day.seconds > 0) TimerManager.formatSeconds(day.seconds) else "—"

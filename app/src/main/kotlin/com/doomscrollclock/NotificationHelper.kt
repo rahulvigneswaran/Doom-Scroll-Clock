@@ -44,7 +44,7 @@ object NotificationHelper {
             "${TimerManager.getFormattedTime()} of doom-scrolling today"
         }
 
-        val tapIntent = Intent(appContext, StatsActivity::class.java)
+        val tapIntent = Intent(appContext, MainActivity::class.java)
         val pi = PendingIntent.getActivity(
             appContext, 0, tapIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
