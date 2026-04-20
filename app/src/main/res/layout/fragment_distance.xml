@@ -15,49 +15,64 @@
         android:paddingTop="32dp"
         android:paddingBottom="16dp">
 
-        <!-- App title -->
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Hero card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textColor="@color/colorOnSurface"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.08"
-            android:textAllCaps="true"
-            android:layout_marginBottom="8dp" />
+            app:cardBackgroundColor="@color/colorPrimaryContainer"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
 
-        <!-- Hero distance -->
-        <TextView
-            android:id="@+id/hero_distance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="~0m"
-            android:textColor="@color/colorOnSurface"
-            android:textSize="52sp"
-            android:textStyle="bold"
-            android:fontFamily="monospace"
-            android:layout_marginBottom="4dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-        <TextView
-            android:id="@+id/scroll_events_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 scroll events today"
-            android:textColor="@color/colorOnSurfaceVariant"
-            android:textSize="14sp"
-            android:layout_marginBottom="24dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/distance_scrolled_label"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/hero_distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="~0m"
+                    android:textColor="@color/colorOnSurface"
+                    android:textSize="56sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace" />
+
+                <TextView
+                    android:id="@+id/scroll_events_subtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 scroll events today"
+                    android:textColor="@color/colorOnSurfaceVariant"
+                    android:textSize="13sp"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Distance fact card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_distance_fact"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/colorPrimaryContainer"
+            app:cardBackgroundColor="@color/colorSurface"
             app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="0dp"
-            android:layout_marginBottom="12dp"
+            app:cardElevation="1dp"
+            android:layout_marginBottom="10dp"
             android:visibility="gone">
 
             <LinearLayout
@@ -70,10 +85,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/distance_scrolled_label"
-                    android:textColor="@color/colorPrimaryVariant"
+                    android:textColor="@color/colorOnSurfaceVariant"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.08"
+                    android:letterSpacing="0.1"
                     android:textAllCaps="true"
                     android:layout_marginBottom="12dp" />
 
@@ -87,7 +102,7 @@
                         android:id="@+id/distance_fact_emoji"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="32sp"
+                        android:textSize="40sp"
                         android:layout_marginEnd="16dp" />
 
                     <LinearLayout
@@ -101,7 +116,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/colorOnSurface"
-                            android:textSize="15sp" />
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/distance_fact_sub"
@@ -126,9 +142,7 @@
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/colorSurface"
             app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/colorDivider"
-            app:strokeWidth="1dp"
+            app:cardElevation="1dp"
             android:visibility="visible">
 
             <LinearLayout

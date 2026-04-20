@@ -44,20 +44,20 @@ object OverlayManager {
         private val cornerRadius = 24 * density
         private val glowPad = (32 * density).toInt()
 
-        private var glowAlpha = 0.35f
+        private var glowAlpha = 0.45f
 
         private val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#8B5CF6")
+            color = Color.parseColor("#FF1744")
             style = Paint.Style.FILL
-            maskFilter = BlurMaskFilter(28 * density, BlurMaskFilter.Blur.NORMAL)
+            maskFilter = BlurMaskFilter(36 * density, BlurMaskFilter.Blur.NORMAL)
         }
         private val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             style = Paint.Style.FILL
-            maskFilter = BlurMaskFilter(10 * density, BlurMaskFilter.Blur.NORMAL)
+            maskFilter = BlurMaskFilter(16 * density, BlurMaskFilter.Blur.NORMAL)
         }
 
-        private val animator = ValueAnimator.ofFloat(0.35f, 1.0f).apply {
+        private val animator = ValueAnimator.ofFloat(0.45f, 1.0f).apply {
             duration = 1500
             repeatMode = ValueAnimator.REVERSE
             repeatCount = ValueAnimator.INFINITE
@@ -90,10 +90,10 @@ object OverlayManager {
             val outerRect = RectF(l - expand, t - expand, r + expand, b + expand)
             val pillRect = RectF(l, t, r, b)
 
-            outerPaint.alpha = (glowAlpha * 0.65f * 255).toInt()
+            outerPaint.alpha = (glowAlpha * 0.85f * 255).toInt()
             canvas.drawRoundRect(outerRect, cornerRadius, cornerRadius, outerPaint)
 
-            innerPaint.alpha = (glowAlpha * 0.55f * 255).toInt()
+            innerPaint.alpha = (glowAlpha * 0.70f * 255).toInt()
             canvas.drawRoundRect(pillRect, cornerRadius, cornerRadius, innerPaint)
 
             super.onDraw(canvas)
@@ -132,7 +132,7 @@ object OverlayManager {
         } else "time"
 
         timerTextView?.text = if (mode == "distance") {
-            val metres = TimerManager.getScrollEvents() * 0.02
+            val metres = TimerManager.getScrollEvents() * FunFacts.METRES_PER_EVENT
             if (metres < 1000) "~${metres.toInt()}m" else "~${"%.1f".format(metres / 1000)}km"
         } else {
             TimerManager.getFormattedTime()

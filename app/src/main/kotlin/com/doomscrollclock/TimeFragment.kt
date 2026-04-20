@@ -4,9 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.doomscrollclock.databinding.FragmentTimeBinding
 import java.time.LocalDate
@@ -61,33 +58,12 @@ class TimeFragment : Fragment() {
 
     private fun populateHistory() {
         val history = TimerManager.getHistory()
-        val maxSecs = history.maxOfOrNull { it.seconds }?.takeIf { it > 0 } ?: 1L
-        val container = binding.historyContainer
-        container.removeAllViews()
         val today = LocalDate.now().toString()
-        val inflater = LayoutInflater.from(requireContext())
-
-        history.forEach { day ->
-            val row = inflater.inflate(R.layout.item_history_row, container, false)
-            val label = row.findViewById<TextView>(R.id.row_label)
-            val bar = row.findViewById<View>(R.id.row_bar)
-            val timeView = row.findViewById<TextView>(R.id.row_time)
-
-            label.text = if (day.date == today) "Today" else {
-                LocalDate.parse(day.date).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            }
-
-            val frac = day.seconds.toFloat() / maxSecs
-            val params = bar.layoutParams as LinearLayout.LayoutParams
-            params.weight = frac
-            bar.layoutParams = params
-            bar.setBackgroundColor(
-                if (day.date == today) ContextCompat.getColor(requireContext(), R.color.colorBarToday)
-                else ContextCompat.getColor(requireContext(), R.color.colorBarPast)
-            )
-
-            timeView.text = if (day.seconds > 0) TimerManager.formatSeconds(day.seconds) else "—"
-            container.addView(row)
+        val bars = history.map { day ->
+            val label = if (day.date == today) "Today"
+            else LocalDate.parse(day.date).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            HistoryChartView.Bar(label, day.seconds, day.date == today)
         }
+        binding.historyChart.setData(bars)
     }
 }

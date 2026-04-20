@@ -49,18 +49,19 @@ object FunFacts {
         TimeFact("🌍", "One full rotation of planet Earth", 86400),
     )
 
-    // Calibrated at 2cm per TYPE_VIEW_SCROLLED event (≈ 6 events per physical swipe ≈ 12cm/swipe)
+    const val METRES_PER_EVENT = 0.05 // 5cm per TYPE_VIEW_SCROLLED event
+
     val distanceFacts = listOf(
-        DistanceFact("🧍", "Taller than an NBA player", 110),
-        DistanceFact("🚌", "A London double-decker bus", 220),
-        DistanceFact("🗽", "The Statue of Liberty (pedestal to torch)", 4650),
-        DistanceFact("🗼", "Past the Eiffel Tower", 16500),
-        DistanceFact("🏙️", "One World Trade Center", 27100),
-        DistanceFact("🌆", "Over the Burj Khalifa — world's tallest building", 41400),
-        DistanceFact("🏔️", "The summit of Mount Everest", 442500),
-        DistanceFact("🏃", "A full marathon, one post at a time", 2110000),
-        DistanceFact("🚀", "Into space (the Kármán line)", 5000000),
-        DistanceFact("🛸", "To the altitude of the ISS", 20000000),
+        DistanceFact("🧍", "Taller than an NBA player", 44),
+        DistanceFact("🚌", "A London double-decker bus", 88),
+        DistanceFact("🗽", "The Statue of Liberty (pedestal to torch)", 1860),
+        DistanceFact("🗼", "Past the Eiffel Tower", 6600),
+        DistanceFact("🏙️", "One World Trade Center", 10840),
+        DistanceFact("🌆", "Over the Burj Khalifa — world's tallest building", 16560),
+        DistanceFact("🏔️", "The summit of Mount Everest", 177000),
+        DistanceFact("🏃", "A full marathon, one post at a time", 844000),
+        DistanceFact("🚀", "Into space (the Kármán line)", 2000000),
+        DistanceFact("🛸", "To the altitude of the ISS", 8000000),
     )
 
     fun getDailyLevel(seconds: Long): Level =
@@ -76,7 +77,7 @@ object FunFacts {
         distanceFacts.lastOrNull { scrollEvents >= it.minEvents }
 
     fun formatDistance(scrollEvents: Long): String {
-        val metres = scrollEvents * 0.02
+        val metres = scrollEvents * METRES_PER_EVENT
         return if (metres < 1000) "~${metres.toInt()}m" else "~${"%.1f".format(metres / 1000)}km"
     }
 }

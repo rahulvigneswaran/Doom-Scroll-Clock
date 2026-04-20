@@ -43,6 +43,7 @@ class ScrollDetectorService : AccessibilityService() {
     }
 
     private var cachedBrowserUrl = ""
+    private var browserScrollCount = 0
     private val midnightReceiver = MidnightResetReceiver()
     private var alarmManager: AlarmManager? = null
 
@@ -94,9 +95,11 @@ class ScrollDetectorService : AccessibilityService() {
             when (event.eventType) {
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
                     if (pkg in BROWSER_PACKAGES) {
+                        refreshBrowserUrl(pkg)
                         handler.removeCallbacks(urlRefreshRunnable)
                         pendingUrlRefreshPkg = pkg
                         handler.postDelayed(urlRefreshRunnable, URL_REFRESH_DELAY_MS)
+                        browserScrollCount = 0
                     }
                 }
                 AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
@@ -105,7 +108,10 @@ class ScrollDetectorService : AccessibilityService() {
                         OverlayManager.show()
                         OverlayManager.scheduleHide()
                     } else if (pkg in BROWSER_PACKAGES) {
-                        if (cachedBrowserUrl.isEmpty()) refreshBrowserUrl(pkg)
+                        browserScrollCount++
+                        if (cachedBrowserUrl.isEmpty() || browserScrollCount % 15 == 0) {
+                            refreshBrowserUrl(pkg)
+                        }
                         if (BROWSER_TARGET_DOMAINS.any {
                                 cachedBrowserUrl.contains(it, ignoreCase = true)
                             }) {
@@ -145,6 +151,15 @@ class ScrollDetectorService : AccessibilityService() {
                 val text = root.findAccessibilityNodeInfosByViewId("$pkg:id/$id")
                     .firstOrNull()?.text?.toString()
                 if (!text.isNullOrEmpty()) {
+                    cachedBrowserUrl = text
+                    return
+                }
+            }
+            // Fallback: traverse tree for any EditText containing a URL
+            val editNodes = root.findAccessibilityNodeInfosByClassName("android.widget.EditText")
+            for (node in editNodes) {
+                val text = node?.text?.toString()
+                if (!text.isNullOrEmpty() && (text.startsWith("http") || text.contains("."))) {
                     cachedBrowserUrl = text
                     return
                 }
