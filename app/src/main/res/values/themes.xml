@@ -21,17 +21,6 @@
         <item name="labelVisibilityMode">labeled</item>
         <item name="itemIconTint">@color/nav_item_color</item>
         <item name="itemTextColor">@color/nav_item_color</item>
-        <item name="itemActiveIndicatorStyle">@style/Widget.App.BottomNavigation.ActiveIndicator</item>
-    </style>
-
-    <style name="Widget.App.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/colorPrimaryContainer</item>
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
-    </style>
-
-    <style name="ShapeAppearance.App.Pill" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
     </style>
 
 </resources>
