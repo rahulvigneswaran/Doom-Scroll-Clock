@@ -108,7 +108,7 @@
                             android:id="@+id/daily_level_tagline"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="\"The day is young.\""
+                            android:text="&quot;The day is young.&quot;"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:textSize="13sp"
                             android:layout_marginTop="2dp" />
@@ -182,7 +182,7 @@
                             android:id="@+id/lifetime_level_tagline"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="\"You\'ve barely begun.\""
+                            android:text="&quot;You've barely begun.&quot;"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:textSize="13sp"
                             android:layout_marginTop="2dp" />
