@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.DoomScrollClock" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.DoomScrollClock" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
         <item name="colorSecondary">@color/colorPrimary</item>
@@ -15,7 +15,7 @@
         <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigation</item>
     </style>
 
-    <style name="Widget.App.BottomNavigation" parent="Widget.MaterialComponents.BottomNavigationView">
+    <style name="Widget.App.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
         <item name="android:background">@color/colorNavBackground</item>
         <item name="elevation">0dp</item>
         <item name="labelVisibilityMode">labeled</item>
@@ -24,7 +24,7 @@
         <item name="itemActiveIndicatorStyle">@style/Widget.App.BottomNavigation.ActiveIndicator</item>
     </style>
 
-    <style name="Widget.App.BottomNavigation.ActiveIndicator" parent="Widget.MaterialComponents.BottomNavigationView.ActiveIndicator">
+    <style name="Widget.App.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">@color/colorPrimaryContainer</item>
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
     </style>
