@@ -10,8 +10,10 @@ import android.view.View
 import androidx.core.content.ContextCompat
 
 class HistoryChartView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null
-) : View(context, attrs) {
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : View(context, attrs, defStyleAttr) {
 
     data class Bar(val label: String, val seconds: Long, val isToday: Boolean)
 
