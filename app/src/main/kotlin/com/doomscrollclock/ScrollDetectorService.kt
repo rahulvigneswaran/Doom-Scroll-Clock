@@ -155,15 +155,6 @@ class ScrollDetectorService : AccessibilityService() {
                     return
                 }
             }
-            // Fallback: traverse tree for any EditText containing a URL
-            val editNodes = root.findAccessibilityNodeInfosByClassName("android.widget.EditText")
-            for (node in editNodes) {
-                val text = node?.text?.toString()
-                if (!text.isNullOrEmpty() && (text.startsWith("http") || text.contains("."))) {
-                    cachedBrowserUrl = text
-                    return
-                }
-            }
         } catch (e: Exception) {
             Log.w(TAG, "Could not read browser URL from $pkg", e)
         }
