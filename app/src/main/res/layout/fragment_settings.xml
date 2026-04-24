@@ -88,7 +88,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_overlay"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/btn_grant"
@@ -152,7 +152,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_accessibility"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/btn_grant"
@@ -217,7 +217,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_notification"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/btn_grant"
@@ -262,7 +262,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_mode_time"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/btn_mode_time"
@@ -271,7 +271,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_mode_distance"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/btn_mode_distance"

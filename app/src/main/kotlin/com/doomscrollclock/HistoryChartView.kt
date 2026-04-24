@@ -19,65 +19,44 @@ class HistoryChartView @JvmOverloads constructor(
 
     private var bars: List<Bar> = emptyList()
 
-    private val d: Float
-    private val sp: Float
-    private val rowH: Float
-    private val barH: Float
-    private val labelW: Float
-    private val valueW: Float
-    private val radius: Float
-    private val rowGap: Float
+    private val d: Float = context.resources.displayMetrics.density
+    private val sp: Float = context.resources.displayMetrics.scaledDensity
+    private val rowH: Float = 34f * d
+    private val barH: Float = 10f * d
+    private val labelW: Float = 44f * d
+    private val valueW: Float = 60f * d
+    private val radius: Float = barH / 2f
+    private val rowGap: Float = 10f * d
 
-    private val trackPaint: Paint
-    private val pastPaint: Paint
-    private val todayPaint: Paint
-    private val labelPaint: Paint
-    private val valuePaint: Paint
-    private val todayLabelPaint: Paint
-    private val todayValuePaint: Paint
-
-    init {
-        val dm = context.resources.displayMetrics
-        d = dm.density
-        sp = dm.scaledDensity
-
-        rowH = 34f * d
-        barH = 10f * d
-        labelW = 44f * d
-        valueW = 60f * d
-        radius = barH / 2f
-        rowGap = 10f * d
-
-        trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorSurfaceVariant)
-        }
-        pastPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorBarPast)
-        }
-        todayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorBarToday)
-        }
-        labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorOnSurfaceVariant)
-            textSize = 11f * sp
-        }
-        valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorOnSurfaceVariant)
-            textSize = 11f * sp
-            typeface = Typeface.MONOSPACE
-            textAlign = Paint.Align.RIGHT
-        }
-        todayLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorPrimary)
-            textSize = 11f * sp
-            typeface = Typeface.DEFAULT_BOLD
-        }
-        todayValuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.colorPrimary)
-            textSize = 11f * sp
-            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-            textAlign = Paint.Align.RIGHT
-        }
+    private val trackPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorSurfaceVariant)
+    }
+    private val pastPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorBarPast)
+    }
+    private val todayPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorBarToday)
+    }
+    private val labelPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorOnSurfaceVariant)
+        textSize = 11f * sp
+    }
+    private val valuePaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorOnSurfaceVariant)
+        textSize = 11f * sp
+        typeface = Typeface.MONOSPACE
+        textAlign = Paint.Align.RIGHT
+    }
+    private val todayLabelPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorPrimary)
+        textSize = 11f * sp
+        typeface = Typeface.DEFAULT_BOLD
+    }
+    private val todayValuePaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.colorPrimary)
+        textSize = 11f * sp
+        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        textAlign = Paint.Align.RIGHT
     }
 
     fun setData(data: List<Bar>) {
