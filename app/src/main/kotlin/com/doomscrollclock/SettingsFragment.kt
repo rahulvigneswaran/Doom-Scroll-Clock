@@ -61,7 +61,29 @@ class SettingsFragment : Fragment() {
                 prefs.edit().putString("pill_display_mode", mode).apply()
             }
         }
+
+        setupAppToggles(prefs)
     }
+
+    private fun setupAppToggles(prefs: android.content.SharedPreferences) {
+        val disabled = prefs.getStringSet("disabled_apps", emptySet()) ?: emptySet()
+
+        val switches = listOf(
+            "instagram" to binding.switchInstagram,
+            "youtube" to binding.switchYoutube,
+            "reddit" to binding.switchReddit,
+            "snapchat" to binding.switchSnapchat,
+        )
+
+        switches.forEach { (key, switch) ->
+            switch.isChecked = key !in disabled
+            switch.setOnCheckedChangeListener { _, isChecked ->
+                val current = prefs.getStringSet("disabled_apps", mutableSetOf())
+                    ?.toMutableSet() ?: mutableSetOf()
+                if (isChecked) current.remove(key) else current.add(key)
+                prefs.edit().putStringSet("disabled_apps", current).apply()
+            }
+        }
 
     override fun onResume() {
         super.onResume()

@@ -8,16 +8,19 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.math.abs
 
 class ScrollDetectorService : AccessibilityService() {
 
     companion object {
         private const val TAG = "DoomScrollClock"
         private const val URL_REFRESH_DELAY_MS = 500L
+        private const val YOUTUBE_DEBOUNCE_MS = 400L
 
         private val TARGET_PACKAGES = setOf(
             "com.instagram.android",
@@ -38,7 +41,23 @@ class ScrollDetectorService : AccessibilityService() {
         private val CHROME_URL_BAR_IDS = listOf(
             "url_bar",
             "location_bar_edit_text",
-            "search_box_text"
+            "search_box_text",
+            "omnibox_text",
+            "url_field"
+        )
+
+        // Maps domain → disable key stored in prefs
+        private val DOMAIN_TO_KEY = mapOf(
+            "instagram.com" to "instagram",
+            "youtube.com" to "youtube",
+            "reddit.com" to "reddit",
+            "snapchat.com" to "snapchat"
+        )
+        private val PACKAGE_TO_KEY = mapOf(
+            "com.instagram.android" to "instagram",
+            "com.google.android.youtube" to "youtube",
+            "com.reddit.frontpage" to "reddit",
+            "com.snapchat.android" to "snapchat"
         )
     }
 
@@ -46,6 +65,7 @@ class ScrollDetectorService : AccessibilityService() {
     private var browserScrollCount = 0
     private val midnightReceiver = MidnightResetReceiver()
     private var alarmManager: AlarmManager? = null
+    private var lastYoutubeContentChangeMs = 0L
 
     private val handler = Handler(Looper.getMainLooper())
     private var pendingUrlRefreshPkg = ""
@@ -87,6 +107,10 @@ class ScrollDetectorService : AccessibilityService() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to register midnight receiver", e)
         }
+
+        TimerManager.achievementListener = { level ->
+            OverlayManager.showAchievement(level)
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -102,9 +126,34 @@ class ScrollDetectorService : AccessibilityService() {
                         browserScrollCount = 0
                     }
                 }
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                    // YouTube Shorts swipe-navigation doesn't fire TYPE_VIEW_SCROLLED,
+                    // so we use content changes debounced at 400ms as a proxy.
+                    if (pkg == "com.google.android.youtube" && isPackageEnabled(pkg)) {
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - lastYoutubeContentChangeMs > YOUTUBE_DEBOUNCE_MS) {
+                            lastYoutubeContentChangeMs = now
+                            TimerManager.incrementScrollEvent(0)
+                            OverlayManager.show()
+                            OverlayManager.scheduleHide()
+                        }
+                    }
+                    // Also use content changes to keep browser URL fresh
+                    if (pkg in BROWSER_PACKAGES) {
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - lastYoutubeContentChangeMs > 1000L) {
+                            lastYoutubeContentChangeMs = now
+                            refreshBrowserUrl(pkg)
+                        }
+                    }
+                }
                 AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
-                    if (pkg in TARGET_PACKAGES) {
-                        TimerManager.incrementScrollEvent()
+                    val deltaY = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        abs(event.scrollDeltaY)
+                    } else 0
+
+                    if (pkg in TARGET_PACKAGES && isPackageEnabled(pkg)) {
+                        TimerManager.incrementScrollEvent(deltaY)
                         OverlayManager.show()
                         OverlayManager.scheduleHide()
                     } else if (pkg in BROWSER_PACKAGES) {
@@ -112,10 +161,8 @@ class ScrollDetectorService : AccessibilityService() {
                         if (cachedBrowserUrl.isEmpty() || browserScrollCount % 15 == 0) {
                             refreshBrowserUrl(pkg)
                         }
-                        if (BROWSER_TARGET_DOMAINS.any {
-                                cachedBrowserUrl.contains(it, ignoreCase = true)
-                            }) {
-                            TimerManager.incrementScrollEvent()
+                        if (isDomainTracked(cachedBrowserUrl)) {
+                            TimerManager.incrementScrollEvent(deltaY)
                             OverlayManager.show()
                             OverlayManager.scheduleHide()
                         }
@@ -131,6 +178,7 @@ class ScrollDetectorService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent): Boolean {
         handler.removeCallbacksAndMessages(null)
+        TimerManager.achievementListener = null
         try {
             unregisterReceiver(midnightReceiver)
         } catch (e: Exception) {
@@ -141,6 +189,23 @@ class ScrollDetectorService : AccessibilityService() {
         NotificationHelper.cleanup()
         TimerManager.stopTicking()
         return super.onUnbind(intent)
+    }
+
+    private fun isPackageEnabled(pkg: String): Boolean {
+        val disabled = getSharedPreferences("doom_scroll_prefs", MODE_PRIVATE)
+            .getStringSet("disabled_apps", emptySet()) ?: emptySet()
+        val key = PACKAGE_TO_KEY[pkg] ?: return true
+        return key !in disabled
+    }
+
+    private fun isDomainTracked(url: String): Boolean {
+        if (url.isEmpty()) return false
+        val disabled = getSharedPreferences("doom_scroll_prefs", MODE_PRIVATE)
+            .getStringSet("disabled_apps", emptySet()) ?: emptySet()
+        return BROWSER_TARGET_DOMAINS.any { domain ->
+            url.contains(domain, ignoreCase = true) &&
+                (DOMAIN_TO_KEY[domain] ?: "") !in disabled
+        }
     }
 
     private fun refreshBrowserUrl(pkg: String) {

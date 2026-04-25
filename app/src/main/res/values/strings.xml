@@ -36,4 +36,16 @@
     <string name="btn_mode_time">⏱ Time</string>
     <string name="btn_mode_distance">📏 Distance</string>
     <string name="granted">Granted</string>
+
+    <!-- Tracked apps section -->
+    <string name="tracked_apps_section_label">Tracked apps</string>
+    <string name="app_instagram">Instagram</string>
+    <string name="app_youtube">YouTube</string>
+    <string name="app_reddit">Reddit</string>
+    <string name="app_snapchat">Snapchat</string>
+
+    <!-- Achievement history -->
+    <string name="achievement_history_section_label">Achievement history</string>
+    <string name="achievement_type_daily">Daily</string>
+    <string name="achievement_type_lifetime">Lifetime</string>
 </resources>

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.doomscrollclock.databinding.FragmentTimeBinding
 import java.time.LocalDate
@@ -54,6 +55,44 @@ class TimeFragment : Fragment() {
         }
 
         populateHistory()
+        populateAchievementHistory()
+    }
+
+    private fun populateAchievementHistory() {
+        val history = TimerManager.getAchievementHistory()
+        if (history.isEmpty()) {
+            binding.labelAchievementHistory.visibility = View.GONE
+            binding.cardAchievementHistory.visibility = View.GONE
+            return
+        }
+        binding.labelAchievementHistory.visibility = View.VISIBLE
+        binding.cardAchievementHistory.visibility = View.VISIBLE
+        binding.achievementHistoryContainer.removeAllViews()
+        history.take(20).forEachIndexed { index, achievement ->
+            if (index > 0) {
+                val divider = View(requireContext()).apply {
+                    layoutParams = android.view.ViewGroup.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1
+                    )
+                    setBackgroundColor(
+                        androidx.core.content.ContextCompat.getColor(
+                            requireContext(), R.color.colorSurfaceVariant
+                        )
+                    )
+                }
+                binding.achievementHistoryContainer.addView(divider)
+            }
+            val row = layoutInflater.inflate(
+                R.layout.item_achievement,
+                binding.achievementHistoryContainer,
+                false
+            )
+            row.findViewById<TextView>(R.id.achievement_emoji).text = achievement.emoji
+            row.findViewById<TextView>(R.id.achievement_title).text = achievement.title
+            row.findViewById<TextView>(R.id.achievement_tagline).text = "\"${achievement.tagline}\""
+            row.findViewById<TextView>(R.id.achievement_date).text = achievement.date
+            binding.achievementHistoryContainer.addView(row)
+        }
     }
 
     private fun populateHistory() {

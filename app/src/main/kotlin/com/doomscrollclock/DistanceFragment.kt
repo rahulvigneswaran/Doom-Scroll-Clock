@@ -28,15 +28,15 @@ class DistanceFragment : Fragment() {
     }
 
     private fun updateDistance() {
+        val metres = TimerManager.getScrollMetres()
         val scrollEvents = TimerManager.getScrollEvents()
-        binding.heroDistance.text = FunFacts.formatDistance(scrollEvents)
+        binding.heroDistance.text = FunFacts.formatDistance(metres)
         binding.scrollEventsSubtitle.text = "$scrollEvents scroll events today"
 
-        val distanceFact = FunFacts.getDistanceFact(scrollEvents)
+        val distanceFact = FunFacts.getDistanceFact(metres)
         if (distanceFact != null) {
             binding.distanceFactEmoji.text = distanceFact.emoji
             binding.distanceFactText.text = distanceFact.text
-            val metres = scrollEvents * FunFacts.METRES_PER_EVENT
             binding.distanceFactSub.text = if (metres < 1000) {
                 "~${metres.toInt()}m of content"
             } else {

@@ -21,6 +21,8 @@ import android.widget.TextView
 object OverlayManager {
 
     private const val HIDE_DELAY_MS = 1500L
+    private const val ACHIEVEMENT_DISPLAY_MS = 4000L
+    private const val SUMMARY_DISPLAY_MS = 3500L
     private const val PREFS_NAME = "doom_scroll_prefs"
     private const val KEY_DISPLAY_MODE = "pill_display_mode"
 
@@ -31,11 +33,11 @@ object OverlayManager {
     private val handler = Handler(Looper.getMainLooper())
     private var isShowing = false
     private var initialized = false
+    private var achievementPending = false
 
     private val hideRunnable = Runnable {
         TimerManager.stopTicking()
-        removeOverlayView()
-        NotificationHelper.showSummary()
+        showEndOfSessionSummary()
     }
 
     private class GlowPillView(ctx: Context) : FrameLayout(ctx) {
@@ -121,8 +123,38 @@ object OverlayManager {
     }
 
     fun scheduleHide() {
+        if (achievementPending) return
         handler.removeCallbacks(hideRunnable)
         handler.postDelayed(hideRunnable, HIDE_DELAY_MS)
+    }
+
+    fun showAchievement(level: FunFacts.Level) {
+        if (!initialized) return
+        achievementPending = true
+        handler.removeCallbacks(hideRunnable)
+
+        if (!isShowing) {
+            try {
+                windowManager.addView(overlayView, buildLayoutParams())
+                isShowing = true
+                overlayView?.startPulsing()
+            } catch (e: Exception) {
+                achievementPending = false
+                return
+            }
+        }
+
+        timerTextView?.text = "${level.emoji}  ${level.title}\n\"${level.tagline}\""
+        try {
+            windowManager.updateViewLayout(overlayView, buildLayoutParams())
+        } catch (e: Exception) { /* view not attached yet */ }
+
+        handler.postDelayed({
+            achievementPending = false
+            updateDisplay(TimerManager.getTotalSeconds())
+            try { windowManager.updateViewLayout(overlayView, buildLayoutParams()) } catch (e: Exception) { }
+            handler.postDelayed(hideRunnable, HIDE_DELAY_MS)
+        }, ACHIEVEMENT_DISPLAY_MS)
     }
 
     fun updateDisplay(@Suppress("UNUSED_PARAMETER") totalSeconds: Long) {
@@ -132,8 +164,7 @@ object OverlayManager {
         } else "time"
 
         timerTextView?.text = if (mode == "distance") {
-            val metres = TimerManager.getScrollEvents() * FunFacts.METRES_PER_EVENT
-            if (metres < 1000) "~${metres.toInt()}m" else "~${"%.1f".format(metres / 1000)}km"
+            FunFacts.formatDistance(TimerManager.getScrollMetres())
         } else {
             TimerManager.getFormattedTime()
         }
@@ -141,12 +172,26 @@ object OverlayManager {
 
     fun cleanup() {
         handler.removeCallbacksAndMessages(null)
+        achievementPending = false
         TimerManager.stopTicking()
         if (isShowing) removeOverlayView()
         overlayView?.stopPulsing()
         initialized = false
         timerTextView = null
         overlayView = null
+    }
+
+    private fun showEndOfSessionSummary() {
+        if (!isShowing) return
+        val totalSecs = TimerManager.getTotalSeconds()
+        val fact = FunFacts.getTimeFact(totalSecs)
+        timerTextView?.text = if (fact != null) {
+            "${fact.emoji}  ${fact.text}"
+        } else {
+            TimerManager.getFormattedTime()
+        }
+        try { windowManager.updateViewLayout(overlayView, buildLayoutParams()) } catch (e: Exception) { }
+        handler.postDelayed({ removeOverlayView() }, SUMMARY_DISPLAY_MS)
     }
 
     private fun removeOverlayView() {
@@ -157,6 +202,8 @@ object OverlayManager {
             // Already removed
         }
         isShowing = false
+        // Reset pill text for next appearance
+        timerTextView?.text = TimerManager.getFormattedTime()
     }
 
     private fun buildOverlayView(): GlowPillView {
