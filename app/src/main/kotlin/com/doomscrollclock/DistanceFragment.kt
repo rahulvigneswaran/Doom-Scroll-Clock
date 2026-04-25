@@ -37,11 +37,7 @@ class DistanceFragment : Fragment() {
         if (distanceFact != null) {
             binding.distanceFactEmoji.text = distanceFact.emoji
             binding.distanceFactText.text = distanceFact.text
-            binding.distanceFactSub.text = if (metres < 1000) {
-                "~${metres.toInt()}m of content"
-            } else {
-                "~${"%.1f".format(metres / 1000)}km of content"
-            }
+            binding.distanceFactSub.text = "${FunFacts.formatDistance(metres)} of content"
             binding.cardDistanceFact.visibility = View.VISIBLE
             binding.cardEmpty.visibility = View.GONE
         } else {

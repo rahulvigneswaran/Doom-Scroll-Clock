@@ -51,23 +51,20 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        val prefs = requireContext().getSharedPreferences("doom_scroll_prefs", Context.MODE_PRIVATE)
-        val currentMode = prefs.getString("pill_display_mode", "time") ?: "time"
-        binding.togglePillMode.check(if (currentMode == "time") R.id.btn_mode_time else R.id.btn_mode_distance)
+        val currentMode = TimerManager.getDisplayMode()
+        binding.togglePillMode.check(if (currentMode == Prefs.DISPLAY_MODE_TIME) R.id.btn_mode_time else R.id.btn_mode_distance)
 
         binding.togglePillMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
-                val mode = if (checkedId == R.id.btn_mode_time) "time" else "distance"
-                prefs.edit().putString("pill_display_mode", mode).apply()
+                val mode = if (checkedId == R.id.btn_mode_time) Prefs.DISPLAY_MODE_TIME else Prefs.DISPLAY_MODE_DISTANCE
+                TimerManager.setDisplayMode(mode)
             }
         }
 
-        setupAppToggles(prefs)
+        setupAppToggles()
     }
 
-    private fun setupAppToggles(prefs: android.content.SharedPreferences) {
-        val disabled = prefs.getStringSet("disabled_apps", emptySet()) ?: emptySet()
-
+    private fun setupAppToggles() {
         val switches = listOf(
             "instagram" to binding.switchInstagram,
             "youtube" to binding.switchYoutube,
@@ -76,12 +73,9 @@ class SettingsFragment : Fragment() {
         )
 
         switches.forEach { (key, switch) ->
-            switch.isChecked = key !in disabled
+            switch.isChecked = TimerManager.isAppEnabled(key)
             switch.setOnCheckedChangeListener { _, isChecked ->
-                val current = prefs.getStringSet("disabled_apps", mutableSetOf())
-                    ?.toMutableSet() ?: mutableSetOf()
-                if (isChecked) current.remove(key) else current.add(key)
-                prefs.edit().putStringSet("disabled_apps", current).apply()
+                TimerManager.setAppEnabled(key, isChecked)
             }
         }
     }

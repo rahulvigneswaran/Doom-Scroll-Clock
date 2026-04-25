@@ -12,6 +12,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -20,11 +21,9 @@ import android.widget.TextView
 
 object OverlayManager {
 
+    private const val TAG = "DoomScrollClock"
     private const val HIDE_DELAY_MS = 1500L
     private const val ACHIEVEMENT_DISPLAY_MS = 4000L
-    private const val SUMMARY_DISPLAY_MS = 3500L
-    private const val PREFS_NAME = "doom_scroll_prefs"
-    private const val KEY_DISPLAY_MODE = "pill_display_mode"
 
     private lateinit var windowManager: WindowManager
     private lateinit var appContext: Context
@@ -37,7 +36,7 @@ object OverlayManager {
 
     private val hideRunnable = Runnable {
         TimerManager.stopTicking()
-        showEndOfSessionSummary()
+        removeOverlayView()
     }
 
     private class GlowPillView(ctx: Context) : FrameLayout(ctx) {
@@ -118,7 +117,7 @@ object OverlayManager {
             TimerManager.startTicking()
             overlayView?.startPulsing()
         } catch (e: Exception) {
-            // SYSTEM_ALERT_WINDOW not granted or revoked at runtime
+            Log.w(TAG, "Could not add overlay view — SYSTEM_ALERT_WINDOW may not be granted", e)
         }
     }
 
@@ -139,6 +138,7 @@ object OverlayManager {
                 isShowing = true
                 overlayView?.startPulsing()
             } catch (e: Exception) {
+                Log.w(TAG, "Could not show overlay for achievement", e)
                 achievementPending = false
                 return
             }
@@ -147,23 +147,24 @@ object OverlayManager {
         timerTextView?.text = "${level.emoji}  ${level.title}\n\"${level.tagline}\""
         try {
             windowManager.updateViewLayout(overlayView, buildLayoutParams())
-        } catch (e: Exception) { /* view not attached yet */ }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not update overlay layout for achievement", e)
+        }
 
         handler.postDelayed({
             achievementPending = false
             updateDisplay(TimerManager.getTotalSeconds())
-            try { windowManager.updateViewLayout(overlayView, buildLayoutParams()) } catch (e: Exception) { }
+            try {
+                windowManager.updateViewLayout(overlayView, buildLayoutParams())
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not restore overlay layout after achievement", e)
+            }
             handler.postDelayed(hideRunnable, HIDE_DELAY_MS)
         }, ACHIEVEMENT_DISPLAY_MS)
     }
 
     fun updateDisplay(@Suppress("UNUSED_PARAMETER") totalSeconds: Long) {
-        val mode = if (::appContext.isInitialized) {
-            appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_DISPLAY_MODE, "time") ?: "time"
-        } else "time"
-
-        timerTextView?.text = if (mode == "distance") {
+        timerTextView?.text = if (TimerManager.getDisplayMode() == Prefs.DISPLAY_MODE_DISTANCE) {
             FunFacts.formatDistance(TimerManager.getScrollMetres())
         } else {
             TimerManager.getFormattedTime()
@@ -181,28 +182,14 @@ object OverlayManager {
         overlayView = null
     }
 
-    private fun showEndOfSessionSummary() {
-        if (!isShowing) return
-        val totalSecs = TimerManager.getTotalSeconds()
-        val fact = FunFacts.getTimeFact(totalSecs)
-        timerTextView?.text = if (fact != null) {
-            "${fact.emoji}  ${fact.text}"
-        } else {
-            TimerManager.getFormattedTime()
-        }
-        try { windowManager.updateViewLayout(overlayView, buildLayoutParams()) } catch (e: Exception) { }
-        handler.postDelayed({ removeOverlayView() }, SUMMARY_DISPLAY_MS)
-    }
-
     private fun removeOverlayView() {
         overlayView?.stopPulsing()
         try {
             windowManager.removeView(overlayView)
         } catch (e: IllegalArgumentException) {
-            // Already removed
+            Log.w(TAG, "Overlay view already removed", e)
         }
         isShowing = false
-        // Reset pill text for next appearance
         timerTextView?.text = TimerManager.getFormattedTime()
     }
 

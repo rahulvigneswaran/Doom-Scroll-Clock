@@ -21,6 +21,7 @@ class ScrollDetectorService : AccessibilityService() {
         private const val TAG = "DoomScrollClock"
         private const val URL_REFRESH_DELAY_MS = 500L
         private const val YOUTUBE_DEBOUNCE_MS = 400L
+        private const val BROWSER_URL_REFRESH_INTERVAL = 15
 
         private val TARGET_PACKAGES = setOf(
             "com.instagram.android",
@@ -66,6 +67,7 @@ class ScrollDetectorService : AccessibilityService() {
     private val midnightReceiver = MidnightResetReceiver()
     private var alarmManager: AlarmManager? = null
     private var lastYoutubeContentChangeMs = 0L
+    private var lastBrowserUrlRefreshMs = 0L
 
     private val handler = Handler(Looper.getMainLooper())
     private var pendingUrlRefreshPkg = ""
@@ -141,8 +143,8 @@ class ScrollDetectorService : AccessibilityService() {
                     // Also use content changes to keep browser URL fresh
                     if (pkg in BROWSER_PACKAGES) {
                         val now = SystemClock.elapsedRealtime()
-                        if (now - lastYoutubeContentChangeMs > 1000L) {
-                            lastYoutubeContentChangeMs = now
+                        if (now - lastBrowserUrlRefreshMs > 1000L) {
+                            lastBrowserUrlRefreshMs = now
                             refreshBrowserUrl(pkg)
                         }
                     }
@@ -158,7 +160,7 @@ class ScrollDetectorService : AccessibilityService() {
                         OverlayManager.scheduleHide()
                     } else if (pkg in BROWSER_PACKAGES) {
                         browserScrollCount++
-                        if (cachedBrowserUrl.isEmpty() || browserScrollCount % 15 == 0) {
+                        if (cachedBrowserUrl.isEmpty() || browserScrollCount % BROWSER_URL_REFRESH_INTERVAL == 0) {
                             refreshBrowserUrl(pkg)
                         }
                         if (isDomainTracked(cachedBrowserUrl)) {
@@ -192,19 +194,15 @@ class ScrollDetectorService : AccessibilityService() {
     }
 
     private fun isPackageEnabled(pkg: String): Boolean {
-        val disabled = getSharedPreferences("doom_scroll_prefs", MODE_PRIVATE)
-            .getStringSet("disabled_apps", emptySet()) ?: emptySet()
         val key = PACKAGE_TO_KEY[pkg] ?: return true
-        return key !in disabled
+        return TimerManager.isAppEnabled(key)
     }
 
     private fun isDomainTracked(url: String): Boolean {
         if (url.isEmpty()) return false
-        val disabled = getSharedPreferences("doom_scroll_prefs", MODE_PRIVATE)
-            .getStringSet("disabled_apps", emptySet()) ?: emptySet()
         return BROWSER_TARGET_DOMAINS.any { domain ->
             url.contains(domain, ignoreCase = true) &&
-                (DOMAIN_TO_KEY[domain] ?: "") !in disabled
+                TimerManager.isAppEnabled(DOMAIN_TO_KEY[domain] ?: return@any false)
         }
     }
 
