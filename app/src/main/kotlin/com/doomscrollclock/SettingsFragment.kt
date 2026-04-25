@@ -84,6 +84,7 @@ class SettingsFragment : Fragment() {
                 prefs.edit().putStringSet("disabled_apps", current).apply()
             }
         }
+    }
 
     override fun onResume() {
         super.onResume()
