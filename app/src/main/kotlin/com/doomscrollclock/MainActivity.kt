@@ -14,6 +14,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        TimerManager.init(this)
+
         if (savedInstanceState == null) {
             showFragment(StatsFragment())
         }
