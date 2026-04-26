@@ -14,13 +14,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Strip any persisted fragment back-stack before super restores it.
+        // Prevents ClassNotFoundException when upgrading from a build that had
+        // TimeFragment / DistanceFragment (classes that no longer exist).
+        savedInstanceState?.remove("android:support:fragments")
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        if (savedInstanceState == null) {
-            routeInitialScreen()
-        }
 
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+        routeInitialScreen()
     }
 
     override fun onResume() {
