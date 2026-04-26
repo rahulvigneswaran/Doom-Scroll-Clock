@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/achievements_title"
+            android:textSize="26sp"
+            android:textColor="@color/colorPlum"
+            android:fontFamily="@font/dm_serif_display" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/achievements_subtitle"
+            android:textSize="13sp"
+            android:textColor="@color/colorMuted"
+            android:textStyle="italic"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Hero gradient card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_hero_achievement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/current_level_label"
+                    android:textSize="11sp"
+                    android:textColor="#A6FFFFFF"
+                    android:letterSpacing="0.08"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_level_number_badge"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:textSize="15sp"
+                        android:textColor="@color/colorWhite"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_level_circle"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:id="@+id/tv_hero_level_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="26sp"
+                        android:textColor="@color/colorWhite"
+                        android:fontFamily="@font/dm_serif_display" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_hero_earned_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="#9EFFFFFF"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Stat chips row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/chip_time"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:padding="10dp"
+                        android:textSize="13sp"
+                        android:textColor="@color/colorWhite"
+                        android:background="@drawable/bg_stat_chip" />
+
+                    <TextView
+                        android:id="@+id/chip_distance"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="10dp"
+                        android:textSize="13sp"
+                        android:textColor="@color/colorWhite"
+                        android:background="@drawable/bg_stat_chip" />
+                </LinearLayout>
+
+                <!-- Roast quote -->
+                <TextView
+                    android:id="@+id/tv_hero_roast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="#D1FFFFFF"
+                    android:textStyle="italic"
+                    android:fontFamily="@font/dm_serif_display"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Share button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_share"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/share_button_label"
+                    android:textColor="@color/colorWhite"
+                    app:strokeColor="#33FFFFFF"
+                    app:cornerRadius="999dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Quick stats row: 3 tiles -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                app:cardBackgroundColor="#1AEF5DA8"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/tv_stat_levels"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPlum"
+                        android:fontFamily="@font/dm_serif_display" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/quick_stats_levels"
+                        android:textSize="11sp"
+                        android:textColor="@color/colorMuted" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                app:cardBackgroundColor="#24F09E54"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/tv_stat_best"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPlum"
+                        android:fontFamily="@font/dm_serif_display" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/quick_stats_best"
+                        android:textSize="11sp"
+                        android:textColor="@color/colorMuted" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:cardBackgroundColor="#2DAEAFF7"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/tv_stat_this_week"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPlum"
+                        android:fontFamily="@font/dm_serif_display" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/quick_stats_this_week"
+                        android:textSize="11sp"
+                        android:textColor="@color/colorMuted" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Section label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/all_unlocked_label"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorMuted"
+            android:textAllCaps="true"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Achievement list container -->
+        <LinearLayout
+            android:id="@+id/container_achievements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </LinearLayout>
+</ScrollView>

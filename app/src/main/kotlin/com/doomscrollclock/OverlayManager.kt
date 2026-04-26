@@ -48,7 +48,7 @@ object OverlayManager {
         private var glowAlpha = 0.45f
 
         private val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FF1744")
+            color = Color.parseColor("#EF5DA8")
             style = Paint.Style.FILL
             maskFilter = BlurMaskFilter(36 * density, BlurMaskFilter.Blur.NORMAL)
         }

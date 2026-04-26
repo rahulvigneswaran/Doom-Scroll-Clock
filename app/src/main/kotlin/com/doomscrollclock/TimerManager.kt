@@ -21,6 +21,9 @@ object TimerManager {
     private var lifetimeSeconds: Long = 0
     private var screenDpi: Float = 160f
 
+    private val perAppEvents = mutableMapOf<String, Long>()
+    private val perAppMetres = mutableMapOf<String, Double>()
+
     var achievementListener: ((FunFacts.Level) -> Unit)? = null
 
     data class DayStats(val date: String, val seconds: Long, val scrollEvents: Long)
@@ -55,6 +58,7 @@ object TimerManager {
         scrollEventsToday = prefs.getLong(Prefs.KEY_SCROLL_EVENTS, 0)
         scrollMetresToday = prefs.getFloat(Prefs.KEY_SCROLL_METRES, 0f).toDouble()
         lifetimeSeconds = prefs.getLong(Prefs.KEY_LIFETIME_SECONDS, 0)
+        restorePerAppData()
         checkAndResetIfNeeded()
     }
 
@@ -80,6 +84,7 @@ object TimerManager {
             .putLong(Prefs.KEY_SCROLL_EVENTS, scrollEventsToday)
             .putFloat(Prefs.KEY_SCROLL_METRES, scrollMetresToday.toFloat())
             .apply()
+        persistPerAppData()
     }
 
     fun reset() {
@@ -87,18 +92,21 @@ object TimerManager {
         totalSeconds = 0
         scrollEventsToday = 0
         scrollMetresToday = 0.0
-        prefs.edit()
+        perAppEvents.clear()
+        perAppMetres.clear()
+        val editor = prefs.edit()
             .putLong(Prefs.KEY_TOTAL_SECONDS, 0)
             .putLong(Prefs.KEY_SCROLL_EVENTS, 0)
             .putFloat(Prefs.KEY_SCROLL_METRES, 0f)
             .putString(Prefs.KEY_RESET_DATE, LocalDate.now().toString())
             .putInt(Prefs.KEY_LAST_DAILY_LEVEL, 0)
-            .apply()
+        clearPerAppPrefs(editor)
+        editor.apply()
     }
 
     // ── Scroll events ─────────────────────────────────────────────────────────
 
-    fun incrementScrollEvent(deltaPixels: Int = 0) {
+    fun incrementScrollEvent(deltaPixels: Int = 0, appKey: String = "") {
         scrollEventsToday++
         val metres = if (deltaPixels > 0 && screenDpi > 0) {
             deltaPixels * 25.4 / (screenDpi * 1000.0)
@@ -106,6 +114,10 @@ object TimerManager {
             FALLBACK_METRES_PER_EVENT
         }
         scrollMetresToday += metres
+        if (appKey.isNotEmpty()) {
+            perAppEvents[appKey] = (perAppEvents[appKey] ?: 0L) + 1L
+            perAppMetres[appKey] = (perAppMetres[appKey] ?: 0.0) + metres
+        }
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
@@ -115,6 +127,8 @@ object TimerManager {
     fun getLifetimeSeconds(): Long = lifetimeSeconds + totalSeconds
     fun getTotalSeconds(): Long = totalSeconds
     fun getFormattedTime(): String = formatSeconds(totalSeconds)
+    fun getAppEvents(): Map<String, Long> = perAppEvents.toMap()
+    fun getAppMetres(): Map<String, Double> = perAppMetres.toMap()
 
     fun formatSeconds(s: Long): String = when {
         s < 60 -> "${s}s"
@@ -129,6 +143,13 @@ object TimerManager {
 
     fun setDisplayMode(mode: String) =
         prefs.edit().putString(Prefs.KEY_DISPLAY_MODE, mode).apply()
+
+    // ── Roast intensity ───────────────────────────────────────────────────────
+
+    fun getRoastIntensity(): Int = prefs.getInt(Prefs.KEY_ROAST_INTENSITY, 2)
+
+    fun setRoastIntensity(value: Int) =
+        prefs.edit().putInt(Prefs.KEY_ROAST_INTENSITY, value.coerceIn(0, 4)).apply()
 
     // ── Per-app toggles ───────────────────────────────────────────────────────
 
@@ -238,6 +259,44 @@ object TimerManager {
             .putLong(Prefs.KEY_LIFETIME_SECONDS, newLifetime)
             .apply()
         lifetimeSeconds = newLifetime
+    }
+
+    // ── Per-app persistence ───────────────────────────────────────────────────
+
+    private fun restorePerAppData() {
+        val all = prefs.all
+        perAppEvents.clear()
+        perAppMetres.clear()
+        for ((key, value) in all) {
+            when {
+                key.startsWith(Prefs.KEY_APP_EVENTS_PREFIX) -> {
+                    val appKey = key.removePrefix(Prefs.KEY_APP_EVENTS_PREFIX)
+                    perAppEvents[appKey] = (value as? Long) ?: 0L
+                }
+                key.startsWith(Prefs.KEY_APP_METRES_PREFIX) -> {
+                    val appKey = key.removePrefix(Prefs.KEY_APP_METRES_PREFIX)
+                    perAppMetres[appKey] = ((value as? Float) ?: 0f).toDouble()
+                }
+            }
+        }
+    }
+
+    private fun persistPerAppData() {
+        val editor = prefs.edit()
+        for ((key, count) in perAppEvents) {
+            editor.putLong(Prefs.KEY_APP_EVENTS_PREFIX + key, count)
+        }
+        for ((key, metres) in perAppMetres) {
+            editor.putFloat(Prefs.KEY_APP_METRES_PREFIX + key, metres.toFloat())
+        }
+        editor.apply()
+    }
+
+    private fun clearPerAppPrefs(editor: SharedPreferences.Editor) {
+        val keys = prefs.all.keys.filter {
+            it.startsWith(Prefs.KEY_APP_EVENTS_PREFIX) || it.startsWith(Prefs.KEY_APP_METRES_PREFIX)
+        }
+        keys.forEach { editor.remove(it) }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

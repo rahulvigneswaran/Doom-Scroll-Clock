@@ -27,6 +27,13 @@ object Prefs {
     const val DISPLAY_MODE_TIME = "time"
     const val DISPLAY_MODE_DISTANCE = "distance"
 
+    // Roast intensity (0 = Polite, 4 = Destroy Me)
+    const val KEY_ROAST_INTENSITY = "roast_intensity"
+
+    // Per-app tracking (suffix with app key, e.g. "scroll_events_app_instagram")
+    const val KEY_APP_EVENTS_PREFIX = "scroll_events_app_"
+    const val KEY_APP_METRES_PREFIX = "scroll_metres_app_"
+
     // History limits
     const val MAX_DAY_HISTORY = 30
     const val MAX_ACHIEVEMENT_HISTORY = 100

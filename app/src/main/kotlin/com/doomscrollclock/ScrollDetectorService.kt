@@ -27,7 +27,9 @@ class ScrollDetectorService : AccessibilityService() {
             "com.instagram.android",
             "com.snapchat.android",
             "com.google.android.youtube",
-            "com.reddit.frontpage"
+            "com.reddit.frontpage",
+            "com.zhiliaoapp.musically",
+            "com.twitter.android"
         )
         private val BROWSER_PACKAGES = setOf(
             "com.android.chrome",
@@ -37,7 +39,9 @@ class ScrollDetectorService : AccessibilityService() {
             "instagram.com",
             "reddit.com",
             "youtube.com",
-            "snapchat.com"
+            "snapchat.com",
+            "twitter.com",
+            "x.com"
         )
         private val CHROME_URL_BAR_IDS = listOf(
             "url_bar",
@@ -47,18 +51,21 @@ class ScrollDetectorService : AccessibilityService() {
             "url_field"
         )
 
-        // Maps domain → disable key stored in prefs
         private val DOMAIN_TO_KEY = mapOf(
             "instagram.com" to "instagram",
             "youtube.com" to "youtube",
             "reddit.com" to "reddit",
-            "snapchat.com" to "snapchat"
+            "snapchat.com" to "snapchat",
+            "twitter.com" to "twitter",
+            "x.com" to "twitter"
         )
         private val PACKAGE_TO_KEY = mapOf(
             "com.instagram.android" to "instagram",
             "com.google.android.youtube" to "youtube",
             "com.reddit.frontpage" to "reddit",
-            "com.snapchat.android" to "snapchat"
+            "com.snapchat.android" to "snapchat",
+            "com.zhiliaoapp.musically" to "tiktok",
+            "com.twitter.android" to "twitter"
         )
     }
 
@@ -135,12 +142,11 @@ class ScrollDetectorService : AccessibilityService() {
                         val now = SystemClock.elapsedRealtime()
                         if (now - lastYoutubeContentChangeMs > YOUTUBE_DEBOUNCE_MS) {
                             lastYoutubeContentChangeMs = now
-                            TimerManager.incrementScrollEvent(0)
+                            TimerManager.incrementScrollEvent(0, "youtube")
                             OverlayManager.show()
                             OverlayManager.scheduleHide()
                         }
                     }
-                    // Also use content changes to keep browser URL fresh
                     if (pkg in BROWSER_PACKAGES) {
                         val now = SystemClock.elapsedRealtime()
                         if (now - lastBrowserUrlRefreshMs > 1000L) {
@@ -155,7 +161,8 @@ class ScrollDetectorService : AccessibilityService() {
                     } else 0
 
                     if (pkg in TARGET_PACKAGES && isPackageEnabled(pkg)) {
-                        TimerManager.incrementScrollEvent(deltaY)
+                        val appKey = PACKAGE_TO_KEY[pkg] ?: ""
+                        TimerManager.incrementScrollEvent(deltaY, appKey)
                         OverlayManager.show()
                         OverlayManager.scheduleHide()
                     } else if (pkg in BROWSER_PACKAGES) {
@@ -163,8 +170,9 @@ class ScrollDetectorService : AccessibilityService() {
                         if (cachedBrowserUrl.isEmpty() || browserScrollCount % BROWSER_URL_REFRESH_INTERVAL == 0) {
                             refreshBrowserUrl(pkg)
                         }
-                        if (isDomainTracked(cachedBrowserUrl)) {
-                            TimerManager.incrementScrollEvent(deltaY)
+                        val domainKey = getDomainKey(cachedBrowserUrl)
+                        if (domainKey != null) {
+                            TimerManager.incrementScrollEvent(deltaY, domainKey)
                             OverlayManager.show()
                             OverlayManager.scheduleHide()
                         }
@@ -198,13 +206,17 @@ class ScrollDetectorService : AccessibilityService() {
         return TimerManager.isAppEnabled(key)
     }
 
-    private fun isDomainTracked(url: String): Boolean {
-        if (url.isEmpty()) return false
-        return BROWSER_TARGET_DOMAINS.any { domain ->
-            url.contains(domain, ignoreCase = true) &&
-                TimerManager.isAppEnabled(DOMAIN_TO_KEY[domain] ?: return@any false)
+    private fun getDomainKey(url: String): String? {
+        if (url.isEmpty()) return null
+        for ((domain, key) in DOMAIN_TO_KEY) {
+            if (url.contains(domain, ignoreCase = true) && TimerManager.isAppEnabled(key)) {
+                return key
+            }
         }
+        return null
     }
+
+    private fun isDomainTracked(url: String): Boolean = getDomainKey(url) != null
 
     private fun refreshBrowserUrl(pkg: String) {
         if (pkg.isEmpty()) return

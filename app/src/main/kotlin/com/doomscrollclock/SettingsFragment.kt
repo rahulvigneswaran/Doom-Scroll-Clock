@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
+import android.widget.SeekBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -53,7 +54,6 @@ class SettingsFragment : Fragment() {
 
         val currentMode = TimerManager.getDisplayMode()
         binding.togglePillMode.check(if (currentMode == Prefs.DISPLAY_MODE_TIME) R.id.btn_mode_time else R.id.btn_mode_distance)
-
         binding.togglePillMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 val mode = if (checkedId == R.id.btn_mode_time) Prefs.DISPLAY_MODE_TIME else Prefs.DISPLAY_MODE_DISTANCE
@@ -62,16 +62,18 @@ class SettingsFragment : Fragment() {
         }
 
         setupAppToggles()
+        setupRoastSlider()
     }
 
     private fun setupAppToggles() {
         val switches = listOf(
+            "tiktok" to binding.switchTiktok,
             "instagram" to binding.switchInstagram,
-            "youtube" to binding.switchYoutube,
+            "twitter" to binding.switchTwitter,
             "reddit" to binding.switchReddit,
+            "youtube" to binding.switchYoutube,
             "snapchat" to binding.switchSnapchat,
         )
-
         switches.forEach { (key, switch) ->
             switch.isChecked = TimerManager.isAppEnabled(key)
             switch.setOnCheckedChangeListener { _, isChecked ->
@@ -80,9 +82,33 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun setupRoastSlider() {
+        val currentIntensity = TimerManager.getRoastIntensity()
+        binding.seekbarRoast.progress = currentIntensity
+        updateRoastPreview(currentIntensity)
+
+        binding.seekbarRoast.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    TimerManager.setRoastIntensity(progress)
+                    updateRoastPreview(progress)
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
+
+    private fun updateRoastPreview(intensity: Int) {
+        val level = FunFacts.getDailyLevel(TimerManager.getTotalSeconds())
+        val quote = FunFacts.getRoastQuote(level, intensity)
+        binding.tvRoastPreview.text = "\"$quote\""
+    }
+
     override fun onResume() {
         super.onResume()
         updatePermissionUI()
+        updateRoastPreview(binding.seekbarRoast.progress)
     }
 
     override fun onDestroyView() {

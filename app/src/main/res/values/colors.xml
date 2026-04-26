@@ -1,19 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorBackground">#F5FAFF</color>
+    <!-- Brand palette -->
+    <color name="colorPink">#EF5DA8</color>
+    <color name="colorLavender">#AEAFF7</color>
+    <color name="colorOrange">#F09E54</color>
+    <color name="colorTeal">#A0E3E2</color>
+    <color name="colorRed">#FF6B6B</color>
+    <color name="colorPlum">#2D1B2E</color>
+    <color name="colorPaper">#F8F7FC</color>
+    <color name="colorMuted">#9590A0</color>
+    <color name="colorSoft">#EAE8F2</color>
+    <color name="colorWhite">#FFFFFF</color>
+
+    <!-- Semantic tokens -->
+    <color name="colorBackground">#F8F7FC</color>
     <color name="colorSurface">#FFFFFF</color>
-    <color name="colorSurfaceVariant">#EBF3F9</color>
-    <color name="colorOnSurface">#1B3543</color>
-    <color name="colorOnSurfaceVariant">#5A7A8A</color>
-    <color name="colorPrimary">#306B3F</color>
-    <color name="colorPrimaryVariant">#235E34</color>
-    <color name="colorPrimaryContainer">#C8E6C9</color>
+    <color name="colorSurfaceVariant">#EAE8F2</color>
+    <color name="colorOnSurface">#2D1B2E</color>
+    <color name="colorOnSurfaceVariant">#9590A0</color>
+    <color name="colorPrimary">#EF5DA8</color>
+    <color name="colorPrimaryVariant">#D44897</color>
+    <color name="colorPrimaryContainer">#FCE4F2</color>
     <color name="colorOnPrimary">#FFFFFF</color>
-    <color name="colorDivider">#DDE8EF</color>
+    <color name="colorDivider">#0D000000</color>
     <color name="colorNavBackground">#FFFFFF</color>
-    <color name="colorBarToday">#306B3F</color>
-    <color name="colorBarPast">#B0C9D6</color>
-    <color name="colorGranted">#306B3F</color>
-    <color name="colorNotGranted">#E53935</color>
-    <color name="colorAccent">#306B3F</color>
+    <color name="colorAccent">#EF5DA8</color>
+
+    <!-- Data viz -->
+    <color name="colorBarToday">#EF5DA8</color>
+    <color name="colorBarPast">#AEAFF7</color>
+
+    <!-- Status indicators -->
+    <color name="colorGranted">#A0E3E2</color>
+    <color name="colorNotGranted">#FF6B6B</color>
+
+    <!-- Overlay pill -->
+    <color name="colorPillBackground">#E6000000</color>
+    <color name="colorPillGlowOuter">#EF5DA8</color>
+    <color name="colorPillGlowInner">#FFFFFF</color>
+
+    <!-- Hero card (dark plum) -->
+    <color name="colorHeroCard">#2D1B2E</color>
 </resources>

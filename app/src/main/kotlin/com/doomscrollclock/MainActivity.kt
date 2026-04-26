@@ -15,13 +15,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         if (savedInstanceState == null) {
-            showFragment(TimeFragment())
+            showFragment(StatsFragment())
         }
 
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_time -> { showFragment(TimeFragment()); true }
-                R.id.nav_distance -> { showFragment(DistanceFragment()); true }
+                R.id.nav_stats -> { showFragment(StatsFragment()); true }
+                R.id.nav_achievements -> { showFragment(AchievementsFragment()); true }
+                R.id.nav_history -> { showFragment(HistoryFragment()); true }
                 R.id.nav_settings -> { showFragment(SettingsFragment()); true }
                 else -> false
             }
