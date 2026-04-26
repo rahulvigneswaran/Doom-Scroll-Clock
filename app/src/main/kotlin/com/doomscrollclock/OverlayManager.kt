@@ -1,41 +1,111 @@
 package com.doomscrollclock
 
+import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.BlurMaskFilter
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.graphics.RectF
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import com.doomscrollclock.databinding.OverlayTimerBinding
+import android.widget.FrameLayout
+import android.widget.TextView
 
 object OverlayManager {
 
+    private const val TAG = "DoomScrollClock"
     private const val HIDE_DELAY_MS = 1500L
+    private const val ACHIEVEMENT_DISPLAY_MS = 4000L
 
     private lateinit var windowManager: WindowManager
     private lateinit var appContext: Context
-    private var overlayView: View? = null
-    private var binding: OverlayTimerBinding? = null
-
-    // All calls to show/hide/scheduleHide originate from onAccessibilityEvent or
-    // onUnbind, both of which run on the main thread — no handler.post needed.
+    private var timerTextView: TextView? = null
+    private var overlayView: GlowPillView? = null
     private val handler = Handler(Looper.getMainLooper())
     private var isShowing = false
     private var initialized = false
+    private var achievementPending = false
 
     private val hideRunnable = Runnable {
         TimerManager.stopTicking()
         removeOverlayView()
     }
 
+    private class GlowPillView(ctx: Context) : FrameLayout(ctx) {
+
+        private val density = ctx.resources.displayMetrics.density
+        private val cornerRadius = 24 * density
+        private val glowPad = (32 * density).toInt()
+
+        private var glowAlpha = 0.45f
+
+        private val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#EF5DA8")
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(36 * density, BlurMaskFilter.Blur.NORMAL)
+        }
+        private val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(16 * density, BlurMaskFilter.Blur.NORMAL)
+        }
+
+        private val animator = ValueAnimator.ofFloat(0.45f, 1.0f).apply {
+            duration = 1500
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            addUpdateListener { glowAlpha = it.animatedValue as Float; invalidate() }
+        }
+
+        init {
+            setLayerType(LAYER_TYPE_SOFTWARE, null)
+            setWillNotDraw(false)
+            setPadding(glowPad, glowPad, glowPad, glowPad)
+        }
+
+        fun startPulsing() {
+            if (!animator.isRunning) animator.start()
+        }
+
+        fun stopPulsing() {
+            animator.cancel()
+            glowAlpha = 0.35f
+            invalidate()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            val child = getChildAt(0) ?: return super.onDraw(canvas)
+            val l = child.left.toFloat()
+            val t = child.top.toFloat()
+            val r = child.right.toFloat()
+            val b = child.bottom.toFloat()
+            val expand = 2 * density
+            val outerRect = RectF(l - expand, t - expand, r + expand, b + expand)
+            val pillRect = RectF(l, t, r, b)
+
+            outerPaint.alpha = (glowAlpha * 0.85f * 255).toInt()
+            canvas.drawRoundRect(outerRect, cornerRadius, cornerRadius, outerPaint)
+
+            innerPaint.alpha = (glowAlpha * 0.70f * 255).toInt()
+            canvas.drawRoundRect(pillRect, cornerRadius, cornerRadius, innerPaint)
+
+            super.onDraw(canvas)
+        }
+    }
+
     fun init(context: Context) {
         if (initialized) return
         appContext = context.applicationContext
         windowManager = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        binding = OverlayTimerBinding.inflate(LayoutInflater.from(appContext))
-        overlayView = binding!!.root
+        overlayView = buildOverlayView()
         initialized = true
     }
 
@@ -45,36 +115,109 @@ object OverlayManager {
             windowManager.addView(overlayView, buildLayoutParams())
             isShowing = true
             TimerManager.startTicking()
+            overlayView?.startPulsing()
         } catch (e: Exception) {
-            // Overlay permission revoked at runtime
+            Log.w(TAG, "Could not add overlay view — SYSTEM_ALERT_WINDOW may not be granted", e)
         }
     }
 
     fun scheduleHide() {
+        if (achievementPending) return
         handler.removeCallbacks(hideRunnable)
         handler.postDelayed(hideRunnable, HIDE_DELAY_MS)
     }
 
+    fun showAchievement(level: FunFacts.Level) {
+        if (!initialized) return
+        achievementPending = true
+        handler.removeCallbacks(hideRunnable)
+
+        if (!isShowing) {
+            try {
+                windowManager.addView(overlayView, buildLayoutParams())
+                isShowing = true
+                overlayView?.startPulsing()
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not show overlay for achievement", e)
+                achievementPending = false
+                return
+            }
+        }
+
+        timerTextView?.text = "${level.emoji}  ${level.title}\n\"${level.tagline}\""
+        try {
+            windowManager.updateViewLayout(overlayView, buildLayoutParams())
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not update overlay layout for achievement", e)
+        }
+
+        handler.postDelayed({
+            achievementPending = false
+            updateDisplay(TimerManager.getTotalSeconds())
+            try {
+                windowManager.updateViewLayout(overlayView, buildLayoutParams())
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not restore overlay layout after achievement", e)
+            }
+            handler.postDelayed(hideRunnable, HIDE_DELAY_MS)
+        }, ACHIEVEMENT_DISPLAY_MS)
+    }
+
     fun updateDisplay(@Suppress("UNUSED_PARAMETER") totalSeconds: Long) {
-        binding?.timerText?.text = TimerManager.getFormattedTime()
+        timerTextView?.text = if (TimerManager.getDisplayMode() == Prefs.DISPLAY_MODE_DISTANCE) {
+            FunFacts.formatDistance(TimerManager.getScrollMetres())
+        } else {
+            TimerManager.getFormattedTime()
+        }
     }
 
     fun cleanup() {
         handler.removeCallbacksAndMessages(null)
+        achievementPending = false
         TimerManager.stopTicking()
         if (isShowing) removeOverlayView()
+        overlayView?.stopPulsing()
         initialized = false
-        binding = null
+        timerTextView = null
         overlayView = null
     }
 
     private fun removeOverlayView() {
+        overlayView?.stopPulsing()
         try {
             windowManager.removeView(overlayView)
         } catch (e: IllegalArgumentException) {
-            // Already removed
+            Log.w(TAG, "Overlay view already removed", e)
         }
         isShowing = false
+        timerTextView?.text = TimerManager.getFormattedTime()
+    }
+
+    private fun buildOverlayView(): GlowPillView {
+        val density = appContext.resources.displayMetrics.density
+        val hPad = (14 * density).toInt()
+        val vPad = (5 * density).toInt()
+        val cornerRadius = 24 * density
+
+        val background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            this.cornerRadius = cornerRadius
+            setColor(0xE6000000.toInt())
+        }
+
+        val tv = TextView(appContext).apply {
+            setPadding(hPad, vPad, hPad, vPad)
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 13f
+            typeface = Typeface.MONOSPACE
+            text = "0s"
+            setBackground(background)
+        }
+
+        return GlowPillView(appContext).also { wrapper ->
+            wrapper.addView(tv)
+            timerTextView = tv
+        }
     }
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {

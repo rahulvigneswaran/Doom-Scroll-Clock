@@ -2,13 +2,89 @@
 <resources>
     <string name="app_name">Doom Scroll Clock</string>
     <string name="accessibility_service_label">Doom Scroll Clock</string>
-    <string name="accessibility_service_description">Tracks time spent scrolling in social media apps and shows a minimal timer overlay. No content is read or stored.</string>
+    <string name="accessibility_service_description">Tracks time spent scrolling in social media apps and shows a timer pill on screen. No content is read or stored.</string>
+
+    <!-- Bottom nav tabs -->
+    <string name="tab_stats">Stats</string>
+    <string name="tab_achievements">Achievements</string>
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Stats fragment -->
+    <string name="today_label">Today</string>
+    <string name="daily_level_label">Daily Level</string>
+    <string name="lifetime_level_label">Lifetime Level</string>
+    <string name="time_fact_label">That\'s the same as…</string>
+    <string name="last_7_days_label">Last 7 days</string>
+    <string name="scroll_report_title">Your Scroll Report</string>
+    <string name="mode_time">⏱ Time</string>
+    <string name="mode_distance">↕ Distance</string>
+    <string name="by_app_header">By app</string>
+    <string name="by_app_subtitle">Where your thumbs actually live</string>
+    <string name="this_week_header">This week</string>
+    <string name="level_progress_label">Level progress</string>
+    <string name="min_to_next_level">%d min to next level</string>
+
+    <!-- Achievements fragment -->
+    <string name="achievements_title">Achievements</string>
+    <string name="achievements_subtitle">Earned through dedication. Or addiction.</string>
+    <string name="current_level_label">CURRENT LEVEL</string>
+    <string name="share_button_label">Share</string>
+    <string name="share_text">I just hit \'%1$s\' on Doom Scroll Clock — %2$d min scrolled today. %3$s</string>
+    <string name="all_unlocked_label">ALL UNLOCKED</string>
+    <string name="latest_badge">latest</string>
+    <string name="quick_stats_levels">Levels hit</string>
+    <string name="quick_stats_best">Personal best</string>
+    <string name="quick_stats_this_week">This week</string>
+
+    <!-- History fragment -->
+    <string name="history_title">Achievement Log</string>
+    <string name="history_subtitle">Kept for your benefit. Mostly.</string>
+
+    <!-- Settings fragment -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Customise your doom experience</string>
+    <string name="permissions_section_label">Permissions</string>
+    <string name="pill_display_section_label">Overlay pill shows</string>
     <string name="permission_overlay_title">Display over other apps</string>
     <string name="permission_overlay_desc">Required to show the scroll timer on top of other apps.</string>
+    <string name="permission_notification_title">Notifications (optional)</string>
+    <string name="permission_notification_desc">Shows a fun fact after each scroll session ends.</string>
     <string name="permission_accessibility_title">Accessibility service</string>
     <string name="permission_accessibility_desc">Required to detect scrolling. No content is read.</string>
-    <string name="status_all_set">All set. Timer is active.</string>
-    <string name="status_missing_permissions">Grant both permissions to activate the timer.</string>
+    <string name="status_all_set">All set — timer is active.</string>
+    <string name="status_missing_permissions">Grant the permissions above to activate the timer.</string>
     <string name="btn_grant">Grant</string>
+    <string name="btn_mode_time">⏱ Time</string>
+    <string name="btn_mode_distance">📏 Distance</string>
     <string name="granted">Granted</string>
+    <string name="roast_intensity_label">Roast intensity</string>
+    <string name="roast_intensity_preview_label">Preview</string>
+    <string name="roast_polite">Polite</string>
+    <string name="roast_gentle">Gentle</string>
+    <string name="roast_honest">Honest</string>
+    <string name="roast_brutal">Brutal</string>
+    <string name="roast_destroy">Destroy Me</string>
+
+    <!-- Tracked apps section -->
+    <string name="tracked_apps_section_label">Track these apps</string>
+    <string name="app_instagram">Instagram</string>
+    <string name="app_youtube">YouTube</string>
+    <string name="app_reddit">Reddit</string>
+    <string name="app_snapchat">Snapchat</string>
+    <string name="app_tiktok">TikTok</string>
+    <string name="app_twitter">Twitter</string>
+
+    <!-- Achievement history -->
+    <string name="achievement_history_section_label">Achievement history</string>
+    <string name="achievement_type_daily">Daily</string>
+    <string name="achievement_type_lifetime">Lifetime</string>
+
+    <!-- Distance fragment (kept for legacy refs) -->
+    <string name="distance_scrolled_label">Distance scrolled</string>
+    <string name="scroll_events_label">scroll events today</string>
+
+    <!-- Time fragment (kept for legacy refs) -->
+    <string name="tab_time">Time</string>
+    <string name="tab_distance">Distance</string>
 </resources>

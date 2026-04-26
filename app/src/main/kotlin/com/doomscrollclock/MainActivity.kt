@@ -1,12 +1,12 @@
 package com.doomscrollclock
 
-import android.content.Intent
-import android.net.Uri
+import android.content.Context
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import android.view.accessibility.AccessibilityManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.doomscrollclock.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -14,53 +14,68 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Strip any persisted fragment back-stack before super restores it.
+        // Prevents ClassNotFoundException when upgrading from a build that had
+        // TimeFragment / DistanceFragment (classes that no longer exist).
+        savedInstanceState?.remove("android:support:fragments")
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnOverlay.setOnClickListener {
-            startActivity(
-                Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
-                )
-            )
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_stats -> { showFragment(StatsFragment()); true }
+                R.id.nav_achievements -> { showFragment(AchievementsFragment()); true }
+                R.id.nav_history -> { showFragment(HistoryFragment()); true }
+                R.id.nav_settings -> { showFragment(SettingsFragment()); true }
+                else -> false
+            }
         }
 
-        binding.btnAccessibility.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        }
+        routeInitialScreen()
     }
 
     override fun onResume() {
         super.onResume()
-        updatePermissionUI()
-    }
-
-    private fun updatePermissionUI() {
-        val overlayGranted = Settings.canDrawOverlays(this)
-        val accessibilityGranted = isAccessibilityServiceEnabled()
-
-        updateDot(binding.dotOverlay, overlayGranted)
-        updateDot(binding.dotAccessibility, accessibilityGranted)
-        binding.btnOverlay.isEnabled = !overlayGranted
-        binding.btnAccessibility.isEnabled = !accessibilityGranted
-
-        binding.statusText.text = if (overlayGranted && accessibilityGranted) {
-            getString(R.string.status_all_set)
-        } else {
-            getString(R.string.status_missing_permissions)
+        // Re-check in case the user navigated away to grant a permission and came back
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (currentFragment is SetupFragment && permissionsGranted()) {
+            onSetupComplete()
         }
     }
 
-    private fun updateDot(dot: android.view.View, granted: Boolean) {
-        val color = if (granted) R.color.colorGranted else R.color.colorNotGranted
-        dot.backgroundTintList = ContextCompat.getColorStateList(this, color)
+    fun onSetupComplete() {
+        binding.bottomNav.visibility = View.VISIBLE
+        binding.bottomNav.selectedItemId = R.id.nav_stats
+        showFragment(StatsFragment())
     }
 
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        val am = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
-        return am.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-            .any { it.resolveInfo.serviceInfo.packageName == packageName }
+    private fun routeInitialScreen() {
+        if (permissionsGranted()) {
+            binding.bottomNav.visibility = View.VISIBLE
+            showFragment(StatsFragment())
+        } else {
+            binding.bottomNav.visibility = View.GONE
+            showFragment(SetupFragment())
+        }
+    }
+
+    private fun permissionsGranted(): Boolean {
+        val overlayGranted = Settings.canDrawOverlays(this)
+        val accessibilityGranted = isAccessibilityEnabled()
+        return overlayGranted && accessibilityGranted
+    }
+
+    private fun isAccessibilityEnabled(): Boolean {
+        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        return am.getEnabledAccessibilityServiceList(
+            android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+        ).any { it.resolveInfo.serviceInfo.packageName == packageName }
+    }
+
+    private fun showFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .commit()
     }
 }

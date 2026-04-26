@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="8dp">
+
+    <!-- Timeline column: dot + line -->
+    <LinearLayout
+        android:layout_width="18dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="top|center_horizontal"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="16dp">
+
+        <View
+            android:id="@+id/timeline_dot"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:background="@drawable/bg_timeline_dot" />
+
+        <View
+            android:id="@+id/timeline_line"
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/colorSoft"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginBottom="4dp"
+        app:cardBackgroundColor="@color/colorSurface"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Header row: date + level badge -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tv_entry_date"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="12sp"
+                    android:textColor="@color/colorMuted"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.06" />
+
+                <TextView
+                    android:id="@+id/tv_entry_level_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:textSize="11sp"
+                    android:textColor="@color/colorWhite"
+                    android:background="@drawable/bg_level_badge" />
+            </LinearLayout>
+
+            <!-- Hero value -->
+            <TextView
+                android:id="@+id/tv_entry_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:textColor="@color/colorPlum"
+                android:fontFamily="@font/dm_serif_display"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Expandable detail section -->
+            <LinearLayout
+                android:id="@+id/detail_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorSurfaceVariant"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:id="@+id/container_app_mini_bars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_roast_quote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/colorPlum"
+                    android:textStyle="italic"
+                    android:fontFamily="@font/dm_serif_display"
+                    android:alpha="0.7" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_tap_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap to expand"
+                android:textSize="11sp"
+                android:textColor="@color/colorMuted"
+                android:drawablePadding="4dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

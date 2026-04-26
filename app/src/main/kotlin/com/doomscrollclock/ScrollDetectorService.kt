@@ -1,24 +1,35 @@
 package com.doomscrollclock
 
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.math.abs
 
 class ScrollDetectorService : AccessibilityService() {
 
     companion object {
+        private const val TAG = "DoomScrollClock"
+        private const val URL_REFRESH_DELAY_MS = 500L
+        private const val YOUTUBE_DEBOUNCE_MS = 400L
+        private const val BROWSER_URL_REFRESH_INTERVAL = 15
+
         private val TARGET_PACKAGES = setOf(
             "com.instagram.android",
             "com.snapchat.android",
             "com.google.android.youtube",
-            "com.reddit.frontpage"
+            "com.reddit.frontpage",
+            "com.zhiliaoapp.musically",
+            "com.twitter.android"
         )
         private val BROWSER_PACKAGES = setOf(
             "com.android.chrome",
@@ -28,98 +39,223 @@ class ScrollDetectorService : AccessibilityService() {
             "instagram.com",
             "reddit.com",
             "youtube.com",
-            "snapchat.com"
+            "snapchat.com",
+            "twitter.com",
+            "x.com"
+        )
+        private val CHROME_URL_BAR_IDS = listOf(
+            "url_bar",
+            "location_bar_edit_text",
+            "search_box_text",
+            "omnibox_text",
+            "url_field"
+        )
+
+        private val DOMAIN_TO_KEY = mapOf(
+            "instagram.com" to "instagram",
+            "youtube.com" to "youtube",
+            "reddit.com" to "reddit",
+            "snapchat.com" to "snapchat",
+            "twitter.com" to "twitter",
+            "x.com" to "twitter"
+        )
+        private val PACKAGE_TO_KEY = mapOf(
+            "com.instagram.android" to "instagram",
+            "com.google.android.youtube" to "youtube",
+            "com.reddit.frontpage" to "reddit",
+            "com.snapchat.android" to "snapchat",
+            "com.zhiliaoapp.musically" to "tiktok",
+            "com.twitter.android" to "twitter"
         )
     }
 
     private var cachedBrowserUrl = ""
+    private var browserScrollCount = 0
     private val midnightReceiver = MidnightResetReceiver()
     private var alarmManager: AlarmManager? = null
+    private var lastYoutubeContentChangeMs = 0L
+    private var lastBrowserUrlRefreshMs = 0L
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var pendingUrlRefreshPkg = ""
+    private val urlRefreshRunnable = Runnable { refreshBrowserUrl(pendingUrlRefreshPkg) }
 
     override fun onServiceConnected() {
-        TimerManager.init(applicationContext)
-        OverlayManager.init(applicationContext)
-        // Scope OS-level event delivery to only our target packages for battery efficiency
-        serviceInfo = serviceInfo.apply {
-            packageNames = (TARGET_PACKAGES + BROWSER_PACKAGES).toTypedArray()
+        try {
+            TimerManager.init(applicationContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "TimerManager init failed", e)
         }
-        alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-        scheduleMidnightAlarm()
-        registerReceiver(midnightReceiver, IntentFilter(Intent.ACTION_DATE_CHANGED))
+        try {
+            OverlayManager.init(applicationContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "OverlayManager init failed", e)
+        }
+        try {
+            NotificationHelper.init(applicationContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "NotificationHelper init failed", e)
+        }
+        try {
+            alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+            scheduleMidnightAlarm()
+        } catch (e: Exception) {
+            Log.e(TAG, "Midnight alarm setup failed", e)
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(
+                    midnightReceiver,
+                    IntentFilter(Intent.ACTION_DATE_CHANGED),
+                    RECEIVER_NOT_EXPORTED
+                )
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                registerReceiver(midnightReceiver, IntentFilter(Intent.ACTION_DATE_CHANGED))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to register midnight receiver", e)
+        }
+
+        TimerManager.achievementListener = { level ->
+            OverlayManager.showAchievement(level)
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString() ?: return
+        try {
+            when (event.eventType) {
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                    if (pkg in BROWSER_PACKAGES) {
+                        refreshBrowserUrl(pkg)
+                        handler.removeCallbacks(urlRefreshRunnable)
+                        pendingUrlRefreshPkg = pkg
+                        handler.postDelayed(urlRefreshRunnable, URL_REFRESH_DELAY_MS)
+                        browserScrollCount = 0
+                    }
+                }
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                    // YouTube Shorts swipe-navigation doesn't fire TYPE_VIEW_SCROLLED,
+                    // so we use content changes debounced at 400ms as a proxy.
+                    if (pkg == "com.google.android.youtube" && isPackageEnabled(pkg)) {
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - lastYoutubeContentChangeMs > YOUTUBE_DEBOUNCE_MS) {
+                            lastYoutubeContentChangeMs = now
+                            TimerManager.incrementScrollEvent(0, "youtube")
+                            OverlayManager.show()
+                            OverlayManager.scheduleHide()
+                        }
+                    }
+                    if (pkg in BROWSER_PACKAGES) {
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - lastBrowserUrlRefreshMs > 1000L) {
+                            lastBrowserUrlRefreshMs = now
+                            refreshBrowserUrl(pkg)
+                        }
+                    }
+                }
+                AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
+                    val deltaY = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        abs(event.scrollDeltaY)
+                    } else 0
 
-        when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                if (pkg in BROWSER_PACKAGES) {
-                    val root = rootInActiveWindow ?: return
-                    val urlNodes = root.findAccessibilityNodeInfosByViewId("$pkg:id/url_bar")
-                    cachedBrowserUrl = urlNodes.firstOrNull()?.text?.toString() ?: cachedBrowserUrl
+                    if (pkg in TARGET_PACKAGES && isPackageEnabled(pkg)) {
+                        val appKey = PACKAGE_TO_KEY[pkg] ?: ""
+                        TimerManager.incrementScrollEvent(deltaY, appKey)
+                        OverlayManager.show()
+                        OverlayManager.scheduleHide()
+                    } else if (pkg in BROWSER_PACKAGES) {
+                        browserScrollCount++
+                        if (cachedBrowserUrl.isEmpty() || browserScrollCount % BROWSER_URL_REFRESH_INTERVAL == 0) {
+                            refreshBrowserUrl(pkg)
+                        }
+                        val domainKey = getDomainKey(cachedBrowserUrl)
+                        if (domainKey != null) {
+                            TimerManager.incrementScrollEvent(deltaY, domainKey)
+                            OverlayManager.show()
+                            OverlayManager.scheduleHide()
+                        }
+                    }
                 }
             }
-            AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
-                val isTargetApp = pkg in TARGET_PACKAGES
-                val isTargetBrowserPage = pkg in BROWSER_PACKAGES &&
-                        BROWSER_TARGET_DOMAINS.any { cachedBrowserUrl.contains(it, ignoreCase = true) }
-
-                if (isTargetApp || isTargetBrowserPage) {
-                    OverlayManager.show()
-                    OverlayManager.scheduleHide()
-                }
-            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error handling accessibility event from $pkg", e)
         }
     }
 
     override fun onInterrupt() = Unit
 
     override fun onUnbind(intent: Intent): Boolean {
+        handler.removeCallbacksAndMessages(null)
+        TimerManager.achievementListener = null
         try {
             unregisterReceiver(midnightReceiver)
-        } catch (e: IllegalArgumentException) {
-            // Not registered
+        } catch (e: Exception) {
+            // Not registered or already unregistered
         }
         alarmManager?.cancel(buildMidnightPendingIntent())
         OverlayManager.cleanup()
+        NotificationHelper.cleanup()
         TimerManager.stopTicking()
         return super.onUnbind(intent)
     }
 
+    private fun isPackageEnabled(pkg: String): Boolean {
+        val key = PACKAGE_TO_KEY[pkg] ?: return true
+        return TimerManager.isAppEnabled(key)
+    }
+
+    private fun getDomainKey(url: String): String? {
+        if (url.isEmpty()) return null
+        for ((domain, key) in DOMAIN_TO_KEY) {
+            if (url.contains(domain, ignoreCase = true) && TimerManager.isAppEnabled(key)) {
+                return key
+            }
+        }
+        return null
+    }
+
+    private fun isDomainTracked(url: String): Boolean = getDomainKey(url) != null
+
+    private fun refreshBrowserUrl(pkg: String) {
+        if (pkg.isEmpty()) return
+        try {
+            val root = rootInActiveWindow ?: return
+            for (id in CHROME_URL_BAR_IDS) {
+                val text = root.findAccessibilityNodeInfosByViewId("$pkg:id/$id")
+                    .firstOrNull()?.text?.toString()
+                if (!text.isNullOrEmpty()) {
+                    cachedBrowserUrl = text
+                    return
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not read browser URL from $pkg", e)
+        }
+    }
+
     private fun scheduleMidnightAlarm() {
         val am = alarmManager ?: return
+        val pendingIntent = buildMidnightPendingIntent()
+        val midnight = nextMidnightMillis()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
-            // Fall back to inexact alarm — still resets within ~10 minutes of midnight
-            am.setWindow(
-                AlarmManager.RTC_WAKEUP,
-                nextMidnightMillis(),
-                10 * 60 * 1000L,
-                buildMidnightPendingIntent()
-            )
-            return
+            am.setWindow(AlarmManager.RTC_WAKEUP, midnight, 10 * 60 * 1000L, pendingIntent)
+        } else {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, midnight, pendingIntent)
         }
-        am.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            nextMidnightMillis(),
-            buildMidnightPendingIntent()
-        )
     }
 
-    private fun buildMidnightPendingIntent(): PendingIntent {
-        val intent = Intent(this, MidnightResetReceiver::class.java)
-        return PendingIntent.getBroadcast(
-            this,
-            0,
-            intent,
+    private fun buildMidnightPendingIntent(): PendingIntent =
+        PendingIntent.getBroadcast(
+            this, 0,
+            Intent(this, MidnightResetReceiver::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-    }
 
-    private fun nextMidnightMillis(): Long {
-        return LocalDate.now()
-            .plusDays(1)
+    private fun nextMidnightMillis(): Long =
+        LocalDate.now().plusDays(1)
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
-    }
 }

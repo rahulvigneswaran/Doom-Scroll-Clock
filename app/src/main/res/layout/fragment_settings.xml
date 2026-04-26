@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground"
+    android:fillViewport="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_title"
+            android:textColor="@color/colorPlum"
+            android:textSize="26sp"
+            android:fontFamily="@font/dm_serif_display" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_subtitle"
+            android:textColor="@color/colorMuted"
+            android:textSize="13sp"
+            android:textStyle="italic"
+            android:layout_marginBottom="24dp" />
+
+        <!-- PERMISSIONS section label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/permissions_section_label"
+            android:textColor="@color/colorMuted"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Overlay permission row -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            android:layout_marginBottom="8dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <View
+                    android:id="@+id/dot_overlay"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/dot_status"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/label_overlay"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_overlay_title"
+                    android:textColor="@color/colorOnSurface"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toEndOf="@id/dot_overlay"
+                    app:layout_constraintEnd_toStartOf="@id/btn_overlay"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginStart="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_overlay_desc"
+                    android:textColor="@color/colorMuted"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toEndOf="@id/dot_overlay"
+                    app:layout_constraintEnd_toStartOf="@id/btn_overlay"
+                    app:layout_constraintTop_toBottomOf="@id/label_overlay"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginTop="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_overlay"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_grant"
+                    android:textColor="@color/colorOnSurface"
+                    app:strokeColor="@color/colorPrimary"
+                    app:cornerRadius="999dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Accessibility permission row -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_accessibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            android:layout_marginBottom="8dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <View
+                    android:id="@+id/dot_accessibility"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/dot_status"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/label_accessibility"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_accessibility_title"
+                    android:textColor="@color/colorOnSurface"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toEndOf="@id/dot_accessibility"
+                    app:layout_constraintEnd_toStartOf="@id/btn_accessibility"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginStart="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_accessibility_desc"
+                    android:textColor="@color/colorMuted"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toEndOf="@id/dot_accessibility"
+                    app:layout_constraintEnd_toStartOf="@id/btn_accessibility"
+                    app:layout_constraintTop_toBottomOf="@id/label_accessibility"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginTop="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_accessibility"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_grant"
+                    android:textColor="@color/colorOnSurface"
+                    app:strokeColor="@color/colorPrimary"
+                    app:cornerRadius="999dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Notification permission row (Android 13+ only) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_notification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <View
+                    android:id="@+id/dot_notification"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/dot_status"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/label_notification"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_notification_title"
+                    android:textColor="@color/colorOnSurface"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toEndOf="@id/dot_notification"
+                    app:layout_constraintEnd_toStartOf="@id/btn_notification"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginStart="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_notification_desc"
+                    android:textColor="@color/colorMuted"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toEndOf="@id/dot_notification"
+                    app:layout_constraintEnd_toStartOf="@id/btn_notification"
+                    app:layout_constraintTop_toBottomOf="@id/label_notification"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginTop="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_notification"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_grant"
+                    android:textColor="@color/colorOnSurface"
+                    app:strokeColor="@color/colorPrimary"
+                    app:cornerRadius="999dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Status text -->
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_missing_permissions"
+            android:textColor="@color/colorMuted"
+            android:textSize="13sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- PILL OVERLAY section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pill_display_section_label"
+            android:textColor="@color/colorMuted"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:layout_marginBottom="10dp" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggle_pill_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_mode_time"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_mode_time"
+                android:textColor="@color/colorOnSurface"
+                app:strokeColor="@color/colorPrimary"
+                app:cornerRadius="999dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_mode_distance"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_mode_distance"
+                android:textColor="@color/colorOnSurface"
+                app:strokeColor="@color/colorPrimary"
+                app:cornerRadius="999dp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- TRACK THESE APPS section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tracked_apps_section_label"
+            android:textColor="@color/colorMuted"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:layout_marginBottom="10dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="🎵  TikTok"
+                        android:textColor="@color/colorOnSurface" android:textSize="15sp" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_tiktok" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:checked="true" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/colorSurfaceVariant" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="📸  Instagram"
+                        android:textColor="@color/colorOnSurface" android:textSize="15sp" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_instagram" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:checked="true" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/colorSurfaceVariant" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="&#128038;  Twitter / X"
+                        android:textColor="@color/colorOnSurface" android:textSize="15sp" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_twitter" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:checked="true" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/colorSurfaceVariant" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="&#128126;  Reddit"
+                        android:textColor="@color/colorOnSurface" android:textSize="15sp" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_reddit" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:checked="true" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/colorSurfaceVariant" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="&#9654;  YouTube"
+                        android:textColor="@color/colorOnSurface" android:textSize="15sp" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_youtube" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:checked="true" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/colorSurfaceVariant" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="&#128123;  Snapchat"
+                        android:textColor="@color/colorOnSurface" android:textSize="15sp" />
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_snapchat" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:checked="true" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ROAST INTENSITY section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/roast_intensity_label"
+            android:textColor="@color/colorMuted"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:layout_marginBottom="10dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            android:layout_marginBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <SeekBar
+                    android:id="@+id/seekbar_roast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="4"
+                    android:progress="2"
+                    android:progressTint="@color/colorPrimary"
+                    android:thumbTint="@color/colorPrimary"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="@string/roast_polite"
+                        android:textSize="10sp" android:textColor="@color/colorMuted" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="@string/roast_gentle"
+                        android:textSize="10sp" android:textColor="@color/colorMuted"
+                        android:gravity="center" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="@string/roast_honest"
+                        android:textSize="10sp" android:textColor="@color/colorMuted"
+                        android:gravity="center" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="@string/roast_brutal"
+                        android:textSize="10sp" android:textColor="@color/colorMuted"
+                        android:gravity="center" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="@string/roast_destroy"
+                        android:textSize="10sp" android:textColor="@color/colorMuted"
+                        android:gravity="end" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Roast preview card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/colorPrimaryContainer"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/roast_intensity_preview_label"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorMuted"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.06"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:id="@+id/tv_roast_preview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textStyle="italic"
+                    android:textColor="@color/colorPlum"
+                    android:fontFamily="@font/dm_serif_display" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</ScrollView>
